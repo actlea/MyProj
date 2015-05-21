@@ -39,8 +39,8 @@ def url_format(url, base_url):
 	scheme=url_structure[0]
 	if scheme not in PROTOCOL:
 		return ''
-	netloc=url_structure[1]
-	if netloc=='':
+	path=url_structure[2]
+	if path=='':
 		url = url+'/'
 	return url
 
@@ -58,14 +58,42 @@ def ext(ll):
 		return ll[0]
 	except IndexError:
 		return ''
-def anchor_format(anchor):
-	
 
-def extract_urlItem(html_content, purl):
-		#
+#去除多余的空格
+def blank_delete(text):
+	try:
+		return ''.join(text.split())
+	except Exception:
+		return text
+
+def url_domain_control(url, purl):
+	url_d = urlparse.urlparse(url)[1]
+	purl_d = urlparse.urlparse(purl)[1]
+
+	urll=url_d.split('.')
+	purll = purl_d.split('.')
+	if urll[-1]==purll[-1] and urll[-2]==purll[-2]:
+		return True
+	else:
+		return False
+
+
+
+def Item_extract(html_content, purl, domain_control=True):
+		'''extract UrlItem and PageItem
+		Args:
+			html_content: content of html
+			purl: url link to html
+			domain_control: whether use domain control
+
+		Returns:
+			UrlItem and PageItem
+		'''
 		if urlparse.urlparse(purl)[2]=='':
 			purl = purl+'/'
-		url_bloom=BloomFilter(capacity=1000, error_rate=0.001)		
+		url_bloom=BloomFilter(capacity=1000, error_rate=0.001)	
+		url_bloom.add(purl)	
+
 		urlItem_list=[]
 
 		hxs = lxml.html.fromstring(html_content)
@@ -76,9 +104,12 @@ def extract_urlItem(html_content, purl):
 
 		for a in a_tags:
 			link = a.xpath('./@href') 
-			link = ext(link)			
+			link = blank_delete (ext(link))	
+			if domain_control and not url_domain_control(link, purl):
+				continue
+
 			anchor_text= a.xpath('./text()')
-			anchor_text = ext(anchor_text)
+			anchor_text = blank_delete( ext(anchor_text))
 
 			link = url_format(link, purl)
 			flag = URL_UNVISITED_SET.add(link)
@@ -86,9 +117,20 @@ def extract_urlItem(html_content, purl):
 				urlItem_list.append( UrlItem(url=link, purl=purl,
 					time=timestamp(), depth=depth, priority=0,
 					anchor=anchor_text) )
-		with open('333','w') as fw:
-			for i in urlItem_list:
-				fw.write(i['url']+'|'+i['purl']+'|'+i['anchor']+'|'+str(i['depth'])+'\n')
+
+		# with open('333','w') as fw:
+		# 	for i in urlItem_list:
+		# 		# fw.write(i['url']+'|'+i['purl']+'|'+i['anchor']+'|'+str(i['depth'])+'\n')
+		# 		fw.write(i['url']+'\n')
+
+		############extract PageItem#####################
+		title = blank_delete( ext(hxs.xpath('//title/text()')) )
+		encode = blank_delete( ext( hxs.xpath('//meta/@charset')) )
+
+
+		print '%s, %s' %(title, encode)
+
+
 
 
 
@@ -110,13 +152,9 @@ def url_priority(urlItem):
 if __name__ == '__main__':
 	html_content = ''
 	link_list = []
-	with open('2.html', 'r') as fr:
+	with open('1111', 'r') as fr:
 		html_content = fr.read()
 
-	with open('222.txt', 'r') as f:
-		for link in f.readlines():
-			link_list.append(link)
-
 	purl='http://www.hupu.com/'
-	extract_urlItem(html_content, purl)
+	Item_extract(html_content, purl)
 	

@@ -56,7 +56,7 @@ class HupuSpider(CrawlSpider):
 		pageItem['time'] = time
 		pageItem['original_url'] = purl
 		pageItem['priority'] = 0
-		pageItem['links'] = extract_links(response)
+		
 
 		#link list get by SgmlLinkExtractor
 		#link_list = self.link_extractor.extract_links(response)

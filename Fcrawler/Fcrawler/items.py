@@ -22,13 +22,7 @@ class UrlItem(Item):
 	depth = Field()
 	priority = Field()
 	anchor = Field()
-	# def __init__(self, url, purl, time, depth, priority, anchor):
-	# 	self.url = url
-	# 	self.purl = purl
-	# 	self.time = time
-	# 	self.depth = depth
-	# 	self.priority = priority
-	# 	self.anchor = anchor
+	
 
 def urlitem(url, purl, time, depth, priority, anchor):
 	item = UrlItem()
@@ -50,19 +44,11 @@ class PageItem(Item):
 	header = Field()
 	priority = Field()
 	title = Field()
-
-	# def __init__(self, original_url, time, depth, content, header, priority,title):
-	# 	self.original_url = original_url
-	# 	self.time = time
-	# 	self.depth = depth
-	# 	self.content = content
-	# 	self.header = header
-	# 	self.priority = priority
-	# 	self.title = title
+	
 def pageitem(original_url, time, depth, content, header, priority,title):
 	item = PageItem()
 	item['original_url'] = original_url
-	item['content'] = content
+	item['content'] = content #must be xml_content
 	item['time'] = time
 	item['depth'] = depth
 	item['priority'] = priority
