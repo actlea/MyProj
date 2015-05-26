@@ -45,7 +45,7 @@ class PageItem(Item):
 	priority = Field()
 	title = Field()
 	
-def pageitem(original_url, time, depth, content, header, priority,title):
+def pageitem(original_url, time, depth, content, header={}, priority,title='', encode=''):
 	item = PageItem()
 	item['original_url'] = original_url
 	item['content'] = content #must be xml_content
@@ -54,5 +54,30 @@ def pageitem(original_url, time, depth, content, header, priority,title):
 	item['priority'] = priority
 	item['header'] = header
 	item['title'] = title
+	item['encode']=encode
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

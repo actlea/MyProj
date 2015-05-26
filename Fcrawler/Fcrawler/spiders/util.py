@@ -4,7 +4,8 @@
 import sys
 sys.path.append('..')
 
-from items import UrlItem,PageItem
+from Fcrawler.items import urlitem,pageitem
+from .Utility import DupeFilterTest
 
 import time
 import urlparse
@@ -14,9 +15,9 @@ import lxml.html
 
 from config import *
 
-global IGNORE_EXT #url后缀过滤
+global IGNORE_EXT 	#url后缀过滤
 global PROTOCOL
-global Depth_Table
+global Depth_Table	#depth table
 
 
 reload(sys) 
@@ -95,12 +96,16 @@ def Item_extract(html_content, purl, domain_control=True):
 		url_bloom.add(purl)	
 
 		urlItem_list=[]
+		request_dup = DupeFilterTest()
 
 		hxs = lxml.html.fromstring(html_content)
 		a_tags = hxs.xpath('//a')
 
 		#all url depth
 		depth = url_depth(purl)+1
+		#control crawl depth
+		if depth>CRAWL_DEPTH:
+			return None
 
 		for a in a_tags:
 			link = a.xpath('./@href') 
@@ -112,9 +117,12 @@ def Item_extract(html_content, purl, domain_control=True):
 			anchor_text = blank_delete( ext(anchor_text))
 
 			link = url_format(link, purl)
-			flag = URL_UNVISITED_SET.add(link)
+			request_not_dup = request_dup.test_dupe_filter(link)
+			flag = True
+			if not request_not_dup:
+				flag = URL_UNVISITED_SET.add(link)
 			if not flag:
-				urlItem_list.append( UrlItem(url=link, purl=purl,
+				urlItem_list.append( urlitem(url=link, purl=purl,
 					time=timestamp(), depth=depth, priority=0,
 					anchor=anchor_text) )
 
@@ -126,11 +134,18 @@ def Item_extract(html_content, purl, domain_control=True):
 		############extract PageItem#####################
 		title = blank_delete( ext(hxs.xpath('//title/text()')) )
 		encode = blank_delete( ext( hxs.xpath('//meta/@charset')) )
+		original_url = purl
+		time = timestamp()
+		depth = url_depth(purl)
+		priority=page_priority(html_content)
+		header = ''		
+		pItem = pageitem(original_url,html_content, time, depth, priority, header, title)	
+		
+		return urlItem_list, pItem
 
 
-		print '%s, %s' %(title, encode)
-
-
+def page_priority(html_content):
+	return 0
 
 
 

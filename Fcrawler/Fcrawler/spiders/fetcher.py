@@ -4,43 +4,41 @@
 import sys
 sys.path.append('..')
 
-from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
-from scrapy.contrib.spiders import CrawlSpider, Rule
+# from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
+from scrapy.contrib.spiders import CrawlSpider
+from scrapy.selector import Selector
 
+import time
+from scrapy_redis.spiders import RedisSpider
 
-# from Fcrawler.items import UrlItem,PageItem
-from items import UrlItem,PageItem
-from util import *
+# our own define 
+import Utility 
+from Fcrawler.items  import UrlItem, PageItem
+from util import Item_extract
+
 
 reload(sys) 
-sys.setdefaultencoding('utf-8')
+sys.setdefaultencoding('utf-8')  # @UndefinedVariable
 
-global Depth_Table
+def timestamp():
+	return str(time.strftime("%y-%m-%d %H:%M:%S", time.localtime()))
 
+
+''' 虎扑体育'''
 class HupuSpider(CrawlSpider):
 	name = 'hupu'
 	start_urls = ['http://www.hupu.com/']
-	allowed_domains = ['hupu.com']
 
-	#set depth
-	for link in start_urls:
-		Depth_Table[ url_hashcode(link)]=0
-
-	link_extractor = SgmlLinkExtractor(allow_domains=(allowed_domains))
-
-
-	def parse(self, response):		
+	def parse(self, response):	
+			print 'parse start'	
 			try:
-				with open('1111', 'w') as fw:
-					fw.write(response.body)
-
-				link_list = []
-				for link in self.link_extractor.extract_links(response):
-					link_list.append(link.url)
-				with open('2222','a') as fw2:
-					for link in link_list:
-						fw2.write(link+'\n')
-			except Exception,e:
+				html = response.body
+				purl = response.url
+				headers = response.header
+				link_list, pItem = Item_extract(html,purl)
+				
+				
+			except:
 				print 'error'
 			# yield Request(link.url, callback=self.parse)
 
@@ -60,8 +58,6 @@ class HupuSpider(CrawlSpider):
 
 		#link list get by SgmlLinkExtractor
 		#link_list = self.link_extractor.extract_links(response)
-
-
 
 
 

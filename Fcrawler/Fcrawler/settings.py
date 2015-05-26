@@ -15,3 +15,9 @@ NEWSPIDER_MODULE = 'Fcrawler.spiders'
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'Fcrawler (+http://www.yourdomain.com)'
+
+SCHEDULER = "scrapy_redis.scheduler.Scheduler"
+SCHEDULER_PERSIST = True
+
+REDIS_HOST = 'localhost'
+REDIS_PORT=6379
