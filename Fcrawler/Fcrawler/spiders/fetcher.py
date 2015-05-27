@@ -7,14 +7,17 @@ sys.path.append('..')
 # from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
 from scrapy.contrib.spiders import CrawlSpider
 from scrapy.selector import Selector
-
+from scrapy.http import Request
 import time
 from scrapy_redis.spiders import RedisSpider
 
 # our own define 
 import Utility 
 from Fcrawler.items  import UrlItem, PageItem
-from util import Item_extract
+from Fcrawler.spiders.url import Item_extract,add_depth
+from config import *
+
+global Depth_Table
 
 
 reload(sys) 
@@ -27,37 +30,35 @@ def timestamp():
 ''' 虎扑体育'''
 class HupuSpider(CrawlSpider):
 	name = 'hupu'
-	start_urls = ['http://www.hupu.com/']
+	start_urls = ['http://www.hupu.com/',]
+	for i in start_urls:
+		add_depth(i)
+	
 
 	def parse(self, response):	
 			print 'parse start'	
 			try:
+				
 				html = response.body
-				purl = response.url
-				headers = response.header
+				purl = response.url		
+				
+				
+				with open('111', 'w') as fw:
+					fw.write(html)
+				
 				link_list, pItem = Item_extract(html,purl)
+				pItem['header']=response.header
+				for url in link_list:
+					print '%s start fetch' %(url)
+					yield Request(url['url'], callback=self.parse)		
 				
+				yield pItem
+				yield link_list	
 				
-			except:
-				print 'error'
-			# yield Request(link.url, callback=self.parse)
-
-
-	def parse_html(self, response):
-		hxs = Selector(response)
-		purl = response.url
-		time = timestamp()
-
-		pageItem = PageItem()
-		pageItem['title'] = hxs.select('//head/title/text()').extract()
-		pageItem['header']  = response.headers
-		pageItem['time'] = time
-		pageItem['original_url'] = purl
-		pageItem['priority'] = 0
+			except Exception,e: 
+				print 'parse error'
 		
 
-		#link list get by SgmlLinkExtractor
-		#link_list = self.link_extractor.extract_links(response)
 
 
 

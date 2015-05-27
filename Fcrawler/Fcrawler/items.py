@@ -44,8 +44,9 @@ class PageItem(Item):
 	header = Field()
 	priority = Field()
 	title = Field()
+	encode = Field()
 	
-def pageitem(original_url, time, depth, content, header={}, priority,title='', encode=''):
+def pageitem(original_url, time, depth, content, priority,title='', encode='',header={}):
 	item = PageItem()
 	item['original_url'] = original_url
 	item['content'] = content #must be xml_content

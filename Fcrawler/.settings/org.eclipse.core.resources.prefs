@@ -1,9 +1,7 @@
 eclipse.preferences.version=1
 encoding//Fcrawler/items.py=utf-8
 encoding//Fcrawler/settings.py=utf-8
-encoding//Fcrawler/spiders/Rule.py=utf-8
 encoding//Fcrawler/spiders/Utility.py=utf-8
-encoding//Fcrawler/spiders/base.py=utf-8
 encoding//Fcrawler/spiders/config.py=utf-8
 encoding//Fcrawler/spiders/fetcher.py=utf-8
-encoding//Fcrawler/spiders/util.py=utf-8
+encoding//Fcrawler/spiders/url.py=utf-8

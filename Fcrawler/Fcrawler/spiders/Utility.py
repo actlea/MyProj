@@ -10,6 +10,7 @@ import redis
 import redis
 import sys
 import MySQLdb
+import time
 from scrapy.utils.request import request_fingerprint
 
 global url_maps
@@ -47,15 +48,16 @@ REDIS_PORT = int(os.environ.get('REDIS_PORT', 6379))
    
 # 检查request是否重复 
 
-class DupeFilterTest():
+class DupeFilterTest():   
+
     def __init__(self):
         self.setUp()
         
     def setUp(self):
         self.server = redis.Redis(REDIS_HOST, REDIS_PORT)
-        self.key = 'Fcrawler:%s:requests:dupefilter:'
-        self.df = RFPDupeFilter(self.server, self.key)
-
+        self.key = 'Fcrawler:requests:dupefilter:'
+        self.df = RFPDupeFilter(self.server, self.key) 
+        
     def tearDown(self):
         self.server.delete(self.key)
 
@@ -67,13 +69,15 @@ class DupeFilterTest():
         
         return flag
 
-class RSet():
-    def __init__(self, set_name):
-        self.set_name = set_name
-        self.setup()
+
+
         
-    def setUp(self):
-        self.server = redis.Redis(REDIS_HOST, REDIS_PORT)
-        self.key = 'scrapy_redis:requests:dupefilter:'
+        
+       
+       
+        
+        
+   
+        
     
     
