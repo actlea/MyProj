@@ -15,9 +15,8 @@ IGNORE_EXT = ('js','css','png','jpg','gif','bmp','svg','exif',\
 
 PROTOCOL = ('http', 'ftp','https')
 
-Depth_Table={}  #store url depth, url hashcode as key, url depth as value
 CRAWL_DEPTH=5
-
+Depth_Table = {}
 
 USER_AGENTS = [
     "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; AcooBrowser; .NET CLR 1.1.4322; .NET CLR 2.0.50727)",

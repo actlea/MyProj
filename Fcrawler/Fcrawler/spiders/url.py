@@ -3,21 +3,22 @@
 
 import sys
 sys.path.append('..')
-
-from Fcrawler.items import urlitem,pageitem,UrlItem,PageItem
-from Utility import DupeFilterTest
-
 import time
 import urlparse
 from pybloom import BloomFilter
 from hashlib import sha256
 import lxml.html
+import os
 
+###################################################################
+#my own function
 from config import *
+from Fcrawler.items import UrlItem,PageItem
+from Utility import DupeFilterTest,Redis_Set, Redis_Priority_Set
 
 global IGNORE_EXT 	#url后缀过滤
 global PROTOCOL
-global Depth_Table	#depth table
+global Depth_Table
 
 
 reload(sys) 
@@ -25,6 +26,11 @@ sys.setdefaultencoding('utf-8')
 
 
 URL_UNVISITED_SET = BloomFilter(capacity=1000, error_rate=0.001) #
+URL_UNVISITED_Redis_SET = Redis_Set('url_unvisited') #url_unvisited_set
+
+UrlItem_UNV_Set = Redis_Priority_Set('urlItem_unvisited') 		#urlitem_unvisited_set, url sorted by priority
+
+
 
 
 
@@ -33,12 +39,14 @@ def timestamp():
 
 
 #ll is list
-def ext(ll):
-	try:
-		return ll[0]
-	except IndexError:
-		return ''
+ext = lambda x:x[0] if x else None
 
+def clean_link(link_text):
+    """
+        Remove leading and trailing whitespace and punctuation
+    """
+
+    return link_text.strip("\t\r\n '\"")
 #去除多余的空格
 def blank_delete(text):
 	try:
@@ -49,7 +57,7 @@ def blank_delete(text):
 
 def text_format(text):
 	if text:
-		return blank_delete (ext(text))
+		return clean_link(blank_delete (ext(text)))
 	else:
 		return text	
 	
@@ -58,8 +66,7 @@ class Url:
 	@classmethod
 	def url_absolute(cls, url, base_url):
 		#makes absolute links
-		res = urlparse.urljoin(base_url, url)
-		print res
+		res = urlparse.urljoin(base_url, url)		
 		return res	
 			
 	@classmethod
@@ -79,17 +86,18 @@ class Url:
 	def url_depth(cls, url):		
 		#get url depth
 		key = url_hashcode(url)
-		depth=0
+		depth=0		
 		if Depth_Table.has_key(key):
-			depth = Depth_Table[key]+1			
-		return depth
-
+			depth = Depth_Table[key]+1				
+		return depth	
+	
 	@classmethod
 	def add_depth(cls, url):
-		depth = cls.url_depth(url)
 		key = url_hashcode(url)
-		Depth_Table[key] = depth
-	
+		depth = cls.url_depth(url)
+		if Depth_Table.has_key(key):
+			Depth_Table[key] = depth			
+		
 	@classmethod
 	def url_domain_control(cls,url, purl):
 		'''netloc filter'''
@@ -106,12 +114,16 @@ class Url:
 	@classmethod
 	def url_depth_control(cls, url,CRAWL_DEPTH=5):
 		depth = cls.url_depth(url)
-		
+		cls.add_depth(url)	
 		if depth > CRAWL_DEPTH:
+			return False			
+		return True
+	
+	@classmethod
+	def url_portocol_filter(cls,url):
+		urlstruc = urlparse.urlparse(url)
+		if urlstruc[0] not in PROTOCOL:
 			return False
-		
-		#add depth to Depth_Table
-		cls.add_depth(url)
 		return True
 		
 	@classmethod
@@ -138,11 +150,12 @@ class Url:
 		'''
 		#bloom filter
 		flag = URL_UNVISITED_SET.add(url)
+		flag = flag or URL_UNVISITED_Redis_SET.push(url) #push url into redis set
 		
 		#request filter
-		request_dup = DupeFilterTest()
-		flag = flag and request_dup.test_dupe_filter(url)
-		return not flag
+# 		request_dup = DupeFilterTest()
+# 		flag = flag or request_dup.test_dupe_filter(url)
+		return flag
 		
 	
 	@classmethod
@@ -152,24 +165,27 @@ class Url:
 		
 		for link in link_anchor_list:
 			url = link[0]
+			#portocol filter
+			portocol_flag = cls.url_portocol_filter(url)			
 			#domain filter
-			domain_flag =  domain_filter and cls.url_domain_control(url, base_url)
+			domain_flag =  domain_filter and cls.url_domain_control(url, base_url)	
+			#depth filter		
 			depth_flag = cls.url_depth_control(url)
-			dup_flag = cls.url_dup_filter(url)
-			
-			if domain_flag and depth_flag and not dup_flag:
-				fi_link_anchor_list.append( link )
+			if portocol_flag and domain_flag and depth_flag:			
+				dup_flag = cls.url_dup_filter(url)			
+				if  not dup_flag:
+					fi_link_anchor_list.append( link )
 				
 		return fi_link_anchor_list			
 												
 	
 	@classmethod
-	def urlItem(cls, link_anchor,purl):
-		item = UrlItem
+	def urlItem(cls, link_anchor,purl, depth=0):
+		item = UrlItem()
 		item['url'] = link_anchor[0]
 		item['purl'] = purl
 		item['time'] = timestamp()
-		item['depth'] = cls.url_depth(purl)+1		
+		item['depth'] = depth+1		
 		item['priority'] = cls.url_priority(link_anchor)
 		item['anchor'] = link_anchor[1]
 		return item		
@@ -180,12 +196,26 @@ class Url:
 	
 	
 	@classmethod
-	def urlItem_save(cls, urlItem_list):
-		file = 'url_%s' %(timestamp())
+	def urlItem__file_save(cls, urlItem_list):
+		if not os.path.exists('../data'):
+			os.mkdir('../data/')
+		file = '../data/url_%s' %(str(time.strftime("%m-%d-%H:%M", time.localtime())))
 		with open(file, 'w')  as fw:
 			for i in urlItem_list:
-				tmp = i['url'] + ' | '+ str(i['depth'])+ ' | ' + i['anchor']+'\n'
-				fw.write(tmp)
+				try:
+					tmp = i['url'] + ' | '+ str(i['depth'])+ ' | ' + i['anchor']+'\n'
+					fw.write(tmp)
+				except:
+					continue
+	@classmethod
+	def urlItem_redis_save(cls, urItem_list):
+		''' save urlitem in redis set'''
+		for i in urItem_list:
+			try:
+				UrlItem_UNV_Set.push(i)
+			except:
+				continue
+		
 			
 	@classmethod
 	def url_todo(cls, html, purl, domain_control=True):
@@ -199,14 +229,20 @@ class Url:
 		#url filter
 		link_anchor_list = cls.url_filter(link_anchor_list, domain_control, purl)
 		
+		#depth of purl
+		depth = cls.url_depth(purl)
 		#generate UrlItem
 		urlitem_list=[]
 		for i in link_anchor_list:			
-			item = cls.urlItem(i, purl)			
+			item = cls.urlItem(i, purl,depth)			
 			urlitem_list.append(item)
 		
-		#save file
-		cls.urlItem_save(urlitem_list)
+		#save to file		
+		cls.urlItem__file_save(urlitem_list)
+		#save to redis
+		cls.urlItem_redis_save(urlitem_list)
+		
+		#save Depth_Table to redis
 	
 
 class Html:

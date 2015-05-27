@@ -1,20 +1,19 @@
 # -*- coding: utf-8 -*-
 # actlea  2015-05-21
 
-   
-'''
-数据库操作
-'''
-import redis
+  
 
 import redis
 import sys
 import MySQLdb
 import time
 from scrapy.utils.request import request_fingerprint
+from scrapy_redis.queue import Base
+from scrapy_redis.dupefilter import RFPDupeFilter
+import os
+from scrapy.http import Request
+import pickle
 
-global url_maps
-url_maps = {}
 
 
 def getRedis(db=0):
@@ -23,24 +22,9 @@ def getRedis(db=0):
 def getMysql():
     return MySQLdb.connect(host='localhost',\
             user='root',passwd='zjm',db="spider_db",port=3306,charset="utf8")
-
-def get_Maps(cfg='./maps.cfg'):
-    map_file = open(cfg, "r")
-    str = map_file.read()
-    map_file.close()
-    try:
-        d = eval(str)
-    except:
-        print 'The Maps config is error! Please check it.'
-        sys.exit()
-    return d    
-
     
  
 
-from scrapy_redis.dupefilter import RFPDupeFilter
-import os
-from scrapy.http import Request
 # allow test settings from environment
 REDIS_HOST = os.environ.get('REDIST_HOST', 'localhost')
 REDIS_PORT = int(os.environ.get('REDIS_PORT', 6379))
@@ -71,6 +55,78 @@ class DupeFilterTest():
 
 
 
+class Redis_Set(Base):
+    def __init__(self, name):
+        self.server = redis.StrictRedis(REDIS_HOST, REDIS_PORT)
+        self.key = 'Fcrawler:%s:set' %name
+    
+    def __len__(self):
+        return self.server.scard(self.key)
+    
+    
+    def _encode_(self, val):
+        """Encode a val object"""
+        return pickle.dumps(val, protocol=-1)
+    
+    def _decode_(self, val):
+        return pickle.loads(val)
+        
+    def push(self, val):
+        '''if val in set, return false, esle return true'''
+        if isinstance(val, dict):
+            flag = self.server.sadd(self.key, self._encode_(val))
+        else:
+            flag = self.server.sadd(self.key, val)
+        return flag
+    
+    def pop(self):
+        '''delete and return a number from set'''
+        data = self.server.spop(self.name)
+        if isinstance(data, dict):
+            return self._decode_(data)
+        return data
+    
+        
+    
+class Redis_Priority_Set(Base):
+        def __init__(self, name):
+            self.server = redis.StrictRedis(REDIS_HOST, REDIS_PORT)
+            self.key = 'Fcrawler:%s:set' %name
+        
+        def __len__(self):
+            return self.server.zcard(self.key)
+        
+        def _encode_(self, urlItem):           
+            data = pickle.dumps(urlItem, protocol=-1)
+            return data
+        
+        def _decode_(self, data):
+            d = pickle.loads(data)
+            return d     
+        
+        def push(self, urlItem):
+            data = self._encode_(urlItem)            
+            pairs = {data: urlItem['priority']}
+            self.server.zadd(self.key, **pairs)
+        
+        def pop(self, timeout=0):
+            """
+            Pop a request
+            timeout not support in this queue class
+            """
+            # use atomic range/remove using multi/exec
+            pipe = self.server.pipeline()
+            pipe.multi()
+            pipe.zrange(self.key, 0, 0).zremrangebyrank(self.key, 0, 0)
+            results, count = pipe.execute()
+            if results:
+                return self._decode_(results[0])
+            
+
+    
+    
+
+        
         
         
        
