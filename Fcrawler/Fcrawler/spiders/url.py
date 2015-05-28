@@ -6,13 +6,14 @@ sys.path.append('..')
 import time
 import urlparse
 from pybloom import BloomFilter
-from hashlib import sha256
+
 import lxml.html
 import os
 
 ###################################################################
 #my own function
 from config import *
+from stringHelper import *
 from Fcrawler.items import UrlItem,PageItem
 from Utility import DupeFilterTest,Redis_Set, Redis_Priority_Set
 
@@ -34,33 +35,8 @@ UrlItem_UNV_Set = Redis_Priority_Set('urlItem_unvisited') 		#urlitem_unvisited_s
 
 
 
-def timestamp():
-	return str(time.strftime("%y-%m-%d %H:%M:%S", time.localtime()))
 
 
-#ll is list
-ext = lambda x:x[0] if x else None
-
-def clean_link(link_text):
-    """
-        Remove leading and trailing whitespace and punctuation
-    """
-
-    return link_text.strip("\t\r\n '\"")
-#去除多余的空格
-def blank_delete(text):
-	try:
-		return ''.join(text.split())
-	except Exception:
-		return text
-
-
-def text_format(text):
-	if text:
-		return clean_link(blank_delete (ext(text)))
-	else:
-		return text	
-	
 class Url:
 				
 	@classmethod
@@ -150,7 +126,7 @@ class Url:
 		'''
 		#bloom filter
 		flag = URL_UNVISITED_SET.add(url)
-		flag = flag or URL_UNVISITED_Redis_SET.push(url) #push url into redis set
+		flag = flag or not URL_UNVISITED_Redis_SET.push(url) #push url into redis set
 		
 		#request filter
 # 		request_dup = DupeFilterTest()
@@ -245,32 +221,9 @@ class Url:
 		#save Depth_Table to redis
 	
 
-class Html:
-	def __init__(self, html, base_url):
-		self.html = html
-		self.base_url = base_url
-		self.hxs = hxs = lxml.html.fromstring(html)
-	
-	def parse(self):
-		title = blank_delete( ext(self.hxs.xpath('//title/text()')) )
-		encode = blank_delete( ext( self.hxs.xpath('//meta/@charset')) )
+
 		
 
-
-
-def page_priority(html_content):
-	return 0
-
-
-
-def url_hashcode(url):
-	code=None
-	if type(url)==unicode:
-		code = sha256(url.encode('utf-8')).hexdigest()
-	else:
-		code = sha256(url.__str__()).hexdigest()
-	int_code = int(code, 16)
-	return int_code
 
 
 def url_priority(urlItem):

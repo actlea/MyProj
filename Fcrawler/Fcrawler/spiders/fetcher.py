@@ -14,7 +14,6 @@ from scrapy_redis.spiders import RedisSpider
 # our own define 
 import Utility 
 from Fcrawler.items  import UrlItem, PageItem
-from Fcrawler.spiders.url import Item_extract,add_depth
 from config import *
 
 global Depth_Table
@@ -31,8 +30,7 @@ def timestamp():
 class HupuSpider(CrawlSpider):
 	name = 'hupu'
 	start_urls = ['http://www.hupu.com/',]
-	for i in start_urls:
-		add_depth(i)
+	
 	
 
 	def parse(self, response):	
@@ -46,7 +44,10 @@ class HupuSpider(CrawlSpider):
 				with open('111', 'w') as fw:
 					fw.write(html)
 				
-				link_list, pItem = Item_extract(html,purl)
+			
+# 				link_list, pItem = Item_extract(html,purl)
+				link_list=[]
+				pItem={}
 				pItem['header']=response.header
 				for url in link_list:
 					print '%s start fetch' %(url)
