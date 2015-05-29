@@ -11,13 +11,18 @@ import os
 import jieba
 import jieba.analyse
 import re
+import HTMLParser
+import pickle
 
+
+from Fcrawler.items import PageItem
 reload(sys) 
 sys.setdefaultencoding('utf-8')  # @UndefinedVariable
 
 Punctuation = "[！，。？：、]+"
 USERDICT = '../data/dict.txt'
 NBA_DICT = '../data/nba.txt'
+HTML_DIR = '../data/HTML/'
 
 def stopwords(file):
     if os.path.exists('../data/stopwords.dict'):
@@ -54,23 +59,52 @@ class Word:
         self.sentence = self.pucn_delete()
         tags = jieba.analyse.extract_tags(self.sentence, topK=k)
         print ' '.join(tags)
-        
+    
+    def html_decode(self, sentence):
+        h = HTMLParser.HTMLParser()  
+        s = h.unescape(sentence)
+        return s
     
 
 class Html:
-    def __init__(self, html, base_url):
-        self.html = html
+    def __init__(self, name, base_url=''):
+        self.html = self.html_content(name)
         self.base_url = base_url
-        self.hxs = lxml.html.fromstring(html)
+        self.hxs = lxml.html.fromstring(self.html)
     
+    def html_content(self, name):
+        '''html from file or str'''
+        if os.path.exists(HTML_DIR+name):            
+            with open(HTML_DIR+file, 'r') as fr:
+                content = fr.read()
+            return content
+        else:
+            return name
+        
+    
+        
+            
     def getMainText(self):
-        text = ''.join(self.hxs.select('a/text() | p/text() | span/text() | h1/text()').extract())
+        text = ''.join(self.hxs.xpath('a/text() | p/text() | span/text() | h1/text()'))
+        return text
     
     def parse(self):
         title = blank_delete( ext(self.hxs.xpath('//title/text()')) )
         encode = blank_delete( ext( self.hxs.xpath('//meta/@charset')) )
         #get main text
-        main_text = self.getMainText(self.html)
+        main_text = self.getMainText()
+        item = PageItem()
+        item['original_url'] = self.base_url
+        item['content'] = main_text #must be xml_content
+        item['time'] = timestamp() 
+        item['title'] = title
+        item['encode']=encode
+        
+        d = pickle.dump(item, protocol=-1)
+        return d
+    
+        
+        
     
     def page_score(self, keyword):
         
@@ -83,10 +117,16 @@ class Html:
     
     
 if __name__=='__main__':
-    sent = u'红军 热刺 曼联'    
-    word = Word(sent)
-    word.searchWord()
-    word.preciseWord() 
+    base_url = 'http://www.hupu.com/'
+    file = '1.html'
+    HTML = Html(file, base_url)
+    d = HTML.parse()
+    print pickle.dump(d)
+
+#     word.searchWord()
+#     word.preciseWord() 
+    
+   
     
     
     
