@@ -112,11 +112,12 @@ class Url:
 	@classmethod
 	def url_dup_filter(cls, url):
 		'''
-		if url duplicate, return True, else return False
+		if url duplicate or has been visited, return True, else return False
 		'''
 		#bloom filter
-		flag = URL_UNVISITED_SET.add(url)
-		flag = flag or not URL_UNVISITED_Redis_SET.push(url) #push url into redis set
+		flag = url in URL_VISITED_SET			
+		flag = not flag and URL_UNVISITED_SET.add(url)
+		flag = flag and URL_UNVISITED_RSET.push(url) #push url into redis set
 		
 		#request filter
 # 		request_dup = DupeFilterTest()
@@ -178,7 +179,7 @@ class Url:
 		''' save urlitem in redis set'''
 		for i in urItem_list:
 			try:
-				UrlItem_UNV_Set.push(pickle.dumps(i, protocol=-1))
+				URL_ITEM_UNV_SET.push(pickle.dumps(i, protocol=-1))
 			except:
 				continue
 		
@@ -202,7 +203,7 @@ class Url:
 		for i in link_anchor_list:			
 			item = cls.urlItem(i, purl,depth)			
 			urlitem_list.append(item)
-			yield urlitem_list
+# 			yield urlitem_list
 		
 		#save to file		
 		cls.urlItem__file_save(urlitem_list)

@@ -1,5 +1,6 @@
 eclipse.preferences.version=1
 encoding//Fcrawler/items.py=utf-8
+encoding//Fcrawler/pipelines.py=utf-8
 encoding//Fcrawler/settings.py=utf-8
 encoding//Fcrawler/spiders/LSA.py=utf-8
 encoding//Fcrawler/spiders/Utility.py=utf-8

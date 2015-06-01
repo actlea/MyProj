@@ -21,3 +21,11 @@ SCHEDULER_PERSIST = True
 
 REDIS_HOST = 'localhost'
 REDIS_PORT=6379
+
+#禁止cookies,防止被ban  
+COOKIES_ENABLED = False 
+
+ITEM_PIPELINES = {  
+    'Fcrawler.pipelines.FcrawlerPipeline':1  
+} 
+

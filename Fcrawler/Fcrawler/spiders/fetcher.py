@@ -9,17 +9,20 @@ from scrapy.contrib.spiders import CrawlSpider
 from scrapy.selector import Selector
 from scrapy.http import Request
 import time
-from scrapy_redis.spiders import RedisSpider
+import logging
+import os
 
 # our own define 
 import Utility 
-from Fcrawler.items  import UrlItem, PageItem
+from Fcrawler.items  import FetchItem
 from config import *
-from url import Url
-from Utility import Redis_Set
+from stringHelper import Logger
 
-global Depth_Table
-global HMTL_DIR
+
+
+
+global UrlItem_UNV_Set
+
 MAX_PAGE = 200
 count=0
 
@@ -28,38 +31,51 @@ count=0
 reload(sys) 
 sys.setdefaultencoding('utf-8')  # @UndefinedVariable
 
-def timestamp():
-	return str(time.strftime("%m%d%H%M%S", time.localtime()))
+
+#log init
+FORMAT = '%(asctime)-15s %(clientip)s %(user)-8s %(message)s'
+logging.basicConfig(filename = os.path.join(os.getcwd(), 'log.txt'), level = logging.DEBUG, format=FORMAT)
 
 
 ''' 虎扑体育'''
 class HupuSpider(CrawlSpider):
 	name = 'hupu'
-	start_urls = ['http://www.hupu.com/',]	
+	start_urls = ['http://www.hupu.com/',
+				'http://sports.sina.com.cn/']	
 
 	def parse(self, response):	
 		global count
 		
-		try:
+		try:		
+			Logger.log_high('hupu spider start'+'.'*20)
 			
-			html = response.body
-			purl = response.url	
-			with open(HMTL_DIR+timestamp(), 'w') as fw:
-				fw.write(html)	
-			URL_Visited_SET.push(purl)
+			try:
+				item = FetchItem()
+				item['content'] = response.body
+				item['original_url'] = response.url
+				Logger.log_normal(response.url+'  download')
+	# 			item['header'] = response.headers
+	# 			item['meta'] = response.meta
+	# 			item['encode'] = response.encoding
+				yield item		
+			except:
+				Logger.log_fail('parse url error')			
 					
 			count+=1
 			if count>=MAX_PAGE:
 				return
 			
-			for url in Url.url_todo(html, purl):
+# 			for url in Url.url_todo(html, purl):
+			while not URL_UNVISITED_RSET.isempty():				
+				url = URL_UNVISITED_RSET.pop()
+				Logger.log_high('url:'+url+'.'*20)							
 				try:					
-					yield Request(url['url'], callback=self.parse)	
+					yield Request(url, callback=self.parse)	
 				except:
 					continue						
 				
 		except : 
-			print 'parse error'
+			Logger.log_fail('parse error')
 		
 
 

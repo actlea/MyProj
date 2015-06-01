@@ -81,10 +81,20 @@ class Redis_Set(Base):
     
     def pop(self):
         '''delete and return a number from set'''
-        data = self.server.spop(self.name)
+        data = self.server.spop(self.key)
         if isinstance(data, dict):
             return self._decode_(data)
         return data
+    
+    def get_all(self):
+        '''Return Set'''
+        data = self.server.smembers(self.key)
+        return data
+        
+        
+    def isempty(self):
+        len = self.server.scard(self.key)
+        return len==0
     
         
     
@@ -125,8 +135,12 @@ class Redis_Priority_Set(Base):
 
     
     
-
-        
+if __name__=='__main__':
+     from config import *
+     set = URL_VISITED_SET.get_all()
+     flag = 'http://www.hupu.com/'  in set 
+     print flag
+     
         
         
        
