@@ -59,12 +59,12 @@ def pageitem(original_url, time, depth, content, priority,title='', encode='',he
 
 
 class FetchItem(Item):
-	original_url = Field()	
-	content = Field()
-	header = Field()
-	meta = Field()		
-	encode = Field()
-
+# 	original_url = Field()	
+# 	content = Field()
+# 	header = Field()
+# 	meta = Field()		
+# 	encode = Field()
+	response = Field()
 
 
 

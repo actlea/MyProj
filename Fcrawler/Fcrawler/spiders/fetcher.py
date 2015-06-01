@@ -9,15 +9,14 @@ from scrapy.contrib.spiders import CrawlSpider
 from scrapy.selector import Selector
 from scrapy.http import Request
 import time
-import logging
-import os
+
 
 # our own define 
 import Utility 
 from Fcrawler.items  import FetchItem
 from config import *
 from stringHelper import Logger
-
+from Utility import DupeFilterTest
 
 
 
@@ -32,11 +31,6 @@ reload(sys)
 sys.setdefaultencoding('utf-8')  # @UndefinedVariable
 
 
-#log init
-FORMAT = '%(asctime)-15s %(clientip)s %(user)-8s %(message)s'
-logging.basicConfig(filename = os.path.join(os.getcwd(), 'log.txt'), level = logging.DEBUG, format=FORMAT)
-
-
 ''' 虎扑体育'''
 class HupuSpider(CrawlSpider):
 	name = 'hupu'
@@ -49,10 +43,12 @@ class HupuSpider(CrawlSpider):
 		try:		
 			Logger.log_high('hupu spider start'+'.'*20)
 			
+			
 			try:
 				item = FetchItem()
-				item['content'] = response.body
-				item['original_url'] = response.url
+# 				item['content'] = response.body
+# 				item['original_url'] = response.url
+				item['response']=response
 				Logger.log_normal(response.url+'  download')
 	# 			item['header'] = response.headers
 	# 			item['meta'] = response.meta
@@ -69,8 +65,11 @@ class HupuSpider(CrawlSpider):
 			while not URL_UNVISITED_RSET.isempty():				
 				url = URL_UNVISITED_RSET.pop()
 				Logger.log_high('url:'+url+'.'*20)							
-				try:					
-					yield Request(url, callback=self.parse)	
+				try:
+					request_dup = DupeFilterTest()
+					flag = request_dup.request_dupe_filter(url)	
+					if not flag:				
+						yield Request(url, callback=self.parse)	
 				except:
 					continue						
 				

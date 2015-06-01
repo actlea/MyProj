@@ -16,7 +16,8 @@ import os
 from config import *
 from stringHelper import *
 from Fcrawler.items import UrlItem,PageItem
-from Utility import DupeFilterTest,Redis_Set, Redis_Priority_Set
+from Utility import Redis_Set, Redis_Priority_Set
+from stringHelper import Logger
 
 global IGNORE_EXT 	#url后缀过滤
 global PROTOCOL
@@ -95,55 +96,56 @@ class Url:
 	@classmethod
 	def url_extract(cls, html, base_url):
 		hxs = lxml.html.fromstring(html)
-		a_tags = hxs.xpath('//a')
-		link_anchor_list=[]
+		a_tags = hxs.xpath('//a')	
 		
 		for a in a_tags:
 			link = a.xpath('./@href') 
-			anchor_text= a.xpath('./text()')	
-			link = text_format(link)
+			anchor_text= a.xpath('./text()')			
+			link = text_format(link)		
 			
 			link = cls.url_format(link, base_url)
-			anchor_text = text_format(anchor_text)
-			
-			link_anchor_list.append((link, anchor_text))
-		return link_anchor_list
+			anchor_text = text_format(anchor_text)				
+
+			yield (link, anchor_text)
+		
 
 	@classmethod
 	def url_dup_filter(cls, url):
 		'''
 		if url duplicate or has been visited, return True, else return False
-		'''
-		#bloom filter
-		flag = url in URL_VISITED_SET			
-		flag = not flag and URL_UNVISITED_SET.add(url)
-		flag = flag and URL_UNVISITED_RSET.push(url) #push url into redis set
-		
-		#request filter
-# 		request_dup = DupeFilterTest()
-# 		flag = flag or request_dup.test_dupe_filter(url)
-		return flag
+		'''		
+		flag = url in URL_VISITED_SET.get_all()
+		if flag: return True		
+		#bloom filter	
+# 		flag = URL_UNVISITED_SET.add(url)
+# 		if flag: return True
+		flag = URL_UNVISITED_RSET.push(url)==0 #push url into redis set
+		if flag: return True
+
+		return False
 		
 	
 	@classmethod
-	def url_filter(cls, link_anchor_list, domain_filter=True, base_url=''):
-		
-		fi_link_anchor_list=[]
-		
-		for link in link_anchor_list:
+	def url_filter(cls, html, domain_filter=True, base_url=''):	
+				
+		for link in cls.url_extract(html, base_url):
 			url = link[0]
 			#portocol filter
-			portocol_flag = cls.url_portocol_filter(url)			
+			portocol_flag = cls.url_portocol_filter(url)
+						
 			#domain filter
-			domain_flag =  domain_filter and cls.url_domain_control(url, base_url)	
+			if domain_filter:
+				domain_flag =  domain_filter and cls.url_domain_control(url, base_url)
+			else:
+				domain_flag = True	
+					
 			#depth filter		
 			depth_flag = cls.url_depth_control(url)
 			if portocol_flag and domain_flag and depth_flag:			
 				dup_flag = cls.url_dup_filter(url)			
-				if  not dup_flag:
-					fi_link_anchor_list.append( link )
+				if  not dup_flag:			
+					yield link
 				
-		return fi_link_anchor_list			
 												
 	
 	@classmethod
@@ -166,7 +168,7 @@ class Url:
 	def urlItem__file_save(cls, urlItem_list):
 		if not os.path.exists('../data'):
 			os.mkdir('../data/')
-		file = '../data/url_%s' %(str(time.strftime("%m-%d-%H:%M", time.localtime())))
+		file = '../data/url_%s' %(str(time.strftime("%m%d%H%M", time.localtime())))
 		with open(file, 'w')  as fw:
 			for i in urlItem_list:
 				try:
@@ -179,28 +181,22 @@ class Url:
 		''' save urlitem in redis set'''
 		for i in urItem_list:
 			try:
-				URL_ITEM_UNV_SET.push(pickle.dumps(i, protocol=-1))
+				URL_ITEM_UNV_SET.push(i)
 			except:
-				continue
+				Logger.log_fail('urlItem_redis_save error')
 		
 			
 	@classmethod
 	def url_todo(cls, html, purl, domain_control=True):
 		#
 		if urlparse.urlparse(purl)[2]=='':
-			purl = purl+'/'		
-		
-		#all url has been format
-		link_anchor_list = cls.url_extract(html, purl)
-		
-		#url filter
-		link_anchor_list = cls.url_filter(link_anchor_list, domain_control, purl)
+			purl = purl+'/'			
 		
 		#depth of purl
 		depth = cls.url_depth(purl)
 		#generate UrlItem
 		urlitem_list=[]
-		for i in link_anchor_list:			
+		for i in cls.url_filter(html, domain_control, purl):			
 			item = cls.urlItem(i, purl,depth)			
 			urlitem_list.append(item)
 # 			yield urlitem_list
@@ -210,13 +206,6 @@ class Url:
 		#save to redis
 		cls.urlItem_redis_save(urlitem_list)
 		
-		#save Depth_Table to redis
-	
-
-
-		
-
-
 
 def url_priority(urlItem):
 	pass
@@ -226,7 +215,7 @@ def url_priority(urlItem):
 if __name__ == '__main__':
 	html_content = ''
 	link_list = []
-	with open('111', 'r') as fr:
+	with open('../data/HTML/0601151532.html', 'r') as fr:
 		html_content = fr.read()
 
 	purl='http://www.hupu.com/'

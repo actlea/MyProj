@@ -1,0 +1,2 @@
+scrapy crawl hupu > ./logg.txt
+ls Fcrawler/data/HTML/ -print

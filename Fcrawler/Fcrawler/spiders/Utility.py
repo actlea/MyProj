@@ -45,7 +45,7 @@ class DupeFilterTest():
     def tearDown(self):
         self.server.delete(self.key)
 
-    def test_dupe_filter(self, url):
+    def request_dupe_filter(self, url):
         req = Request(url)      
         flag = self.df.request_seen(req)
 

@@ -13,6 +13,7 @@ sys.setdefaultencoding('utf-8')  # @UndefinedVariable
 from Fcrawler.spiders.url import Url
 from Fcrawler.spiders.config import *
 from Fcrawler.spiders.stringHelper import *
+from Fcrawler.spiders.stringHelper import Logger
 
 import logging
 
@@ -27,9 +28,10 @@ class FcrawlerPipeline(object):
 #         return item
 
     def process_item(self, item, spider):
-        logging.info('process_item()')
-        html = item['content']
-        base_url = item['original_url']        
+        Logger.log_high('pipeline........................')
+        Logger.info('pipeline........................')
+        html = item['response'].body
+        base_url = item['response'].url       
        
         
         #parse url and filter url
@@ -37,6 +39,7 @@ class FcrawlerPipeline(object):
             
         with open(HMTL_DIR+timestamp()+'.html', 'wb') as fw:
             fw.write(html)    
+        logging.info(base_url+' fetched success ')   
         URL_VISITED_SET.push(base_url)
         
         

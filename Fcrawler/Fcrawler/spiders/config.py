@@ -24,6 +24,7 @@ DIR = '/opt/Work/java_workspace/Fcrawler/Fcrawler/data/'
 HMTL_DIR = DIR+'HTML/'
 
 URL_UNVISITED_SET = BloomFilter(capacity=1000, error_rate=0.001)    #
+
 URL_UNVISITED_RSET = Redis_Set('url_unvisited')                #url_unvisited_set
 
 URL_ITEM_UNV_SET = Redis_Priority_Set('urlItem_unvisited')           #urlitem_unvisited_set, url sorted by priority
