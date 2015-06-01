@@ -14,18 +14,20 @@ import re
 import HTMLParser
 import pickle
 
+from config import *
+
 
 from Fcrawler.items import PageItem
 reload(sys) 
 sys.setdefaultencoding('utf-8')  # @UndefinedVariable
 
 Punctuation = "[！，。？：、]+"
-USERDICT = '../data/dict.txt'
-NBA_DICT = '../data/nba.txt'
-HTML_DIR = '../data/HTML/'
+USERDICT = DIR+'dict.txt'
+NBA_DICT = DIR+'nba.txt'
+HTML_DIR = DIR+'HTML/'
 
 def stopwords(file):
-    if os.path.exists('../data/stopwords.dict'):
+    if os.path.exists('/opt/data/stopwords.dict'):
         pass
     
 class Word:
@@ -84,13 +86,24 @@ class Html:
     
         
             
-    def getMainText(self):
-        text = ''.join(self.hxs.xpath('a/text() | p/text() | span/text() | h1/text()'))
-        return text
+    def getMainText(self): 
+        try:      
+            text = ''.join(self.hxs.xpath('//a/text() | //p/text() | //span/text() | //h1/text()')).decode('utf-8')
+            text = blank_delete(text)
+            print text
+            return text
+        except:
+            print 'getMainText() error'      
+        
+        
+        
     
     def parse(self):
         title = blank_delete( ext(self.hxs.xpath('//title/text()')) )
-        encode = blank_delete( ext( self.hxs.xpath('//meta/@charset')) )
+#         encode = blank_delete( ext( self.hxs.xpath('//meta/@charset')) )
+        encode = re.search(r'charset=(.*).', self.html) 
+        if encode: encode = encode.group(1)        
+       
         #get main text
         main_text = self.getMainText()
         item = PageItem()
@@ -100,7 +113,7 @@ class Html:
         item['title'] = title
         item['encode']=encode
         
-        d = pickle.dump(item, protocol=-1)
+        d = pickle.dumps(item, protocol=-1)
         return d
     
         
@@ -121,7 +134,7 @@ if __name__=='__main__':
     file = '1.html'
     HTML = Html(file, base_url)
     d = HTML.parse()
-    print pickle.dump(d)
+    print pickle.loads(d)
 
 #     word.searchWord()
 #     word.preciseWord() 

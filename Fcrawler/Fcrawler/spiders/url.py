@@ -6,6 +6,7 @@ sys.path.append('..')
 import time
 import urlparse
 from pybloom import BloomFilter
+import pickle
 
 import lxml.html
 import os
@@ -24,17 +25,6 @@ global Depth_Table
 
 reload(sys) 
 sys.setdefaultencoding('utf-8')
-
-
-URL_UNVISITED_SET = BloomFilter(capacity=1000, error_rate=0.001) #
-URL_UNVISITED_Redis_SET = Redis_Set('url_unvisited') #url_unvisited_set
-
-UrlItem_UNV_Set = Redis_Priority_Set('urlItem_unvisited') 		#urlitem_unvisited_set, url sorted by priority
-
-
-
-
-
 
 
 class Url:
@@ -188,7 +178,7 @@ class Url:
 		''' save urlitem in redis set'''
 		for i in urItem_list:
 			try:
-				UrlItem_UNV_Set.push(i)
+				UrlItem_UNV_Set.push(pickle.dumps(i, protocol=-1))
 			except:
 				continue
 		
@@ -212,6 +202,7 @@ class Url:
 		for i in link_anchor_list:			
 			item = cls.urlItem(i, purl,depth)			
 			urlitem_list.append(item)
+			yield urlitem_list
 		
 		#save to file		
 		cls.urlItem__file_save(urlitem_list)

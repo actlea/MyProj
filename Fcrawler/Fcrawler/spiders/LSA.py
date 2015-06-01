@@ -2,7 +2,10 @@
 import jieba
 import numpy  as np
 import re
-jieba.load_userdict("../data/dict.txt")
+import os
+
+if os.path.exists("../data/dict.txt"):
+    jieba.load_userdict("../data/dict.txt")
 titles = ["奇才塞拉芬漂移跳投得2分，由沃尔助攻",
  "老鹰霍福德失误：丢球，被波特断球",
  "奇才沃尔第二罚命中，得1分",
@@ -38,39 +41,28 @@ class LSA(object):
             else:
                 self.widct[w]=[self.dcount]
         self.dcount+=1
+    
     def build(self):     
         self.keys=[k for k in self.widct.keys() if len(self.widct[k])>0]
         self.keys.sort()
+       #matrix len(keys) * len(dcount)
         self.A=np.zeros([len(self.keys),self.dcount])
-        for i,k in enumerate(self.keys):
-            print(self.keys[i])
+        for i,k in enumerate(self.keys):           
             for d in self.widct[k]:
                 self.A[i,d]+=1
+    
     def printA(self):
         print self.A
         
     def calc(self):
-        self.U,self.S,self.V=np.linalg.svd(self.A)
-        print self.U
-        print("\n")
-        print self.S
-        print("\n")
-        print self.V
-        print("\n")
+        self.U,self.S,self.V=np.linalg.svd(self.A)# calc SVD matrix
+        
     def calct(self):      
         self.u=self.U[0:,0:3]
         self.s=np.diag((self.S[0],self.S[1],self.S[2]))
-        self.v=self.V[0:3].T    
-        print self.u
-        print("\n")
-        print self.s
-        print("\n")
-        print self.v
-        print("\n")     
+        self.v=self.V[0:3].T         
         self.e=np.dot(self.v,self.s)
-        print("\n")
-        print(self.e)
-        print("\n")
+       
     def calsim(self,doc):
         test_list=jieba.cut(doc)
         testwords=[]
@@ -82,11 +74,10 @@ class LSA(object):
         for i,k in enumerate(self.keys):
             if k in testwords:
                 self.x[i]=1
-        print self.x
-        print("\n")     
+           
         self.d=np.dot(np.dot(self.x.T,self.u),np.linalg.inv(self.s))
-        print self.d
-        print("\n")
+        
+        
         self.sim=np.zeros(self.dcount)
         for i in range(self.dcount):
             a=self.e[i]
@@ -106,12 +97,11 @@ class LSA(object):
                 num=i
                 print num
 
-mylsa=LSA(stopwords)
-for t in titles:
-    mylsa.parse(t)
-mylsa.build()
-mylsa.printA()
-mylsa.calc()
-mylsa.calct()
-mylsa.calsim(title)   
-mylsa.getnum()
+# mylsa=LSA(stopwords)
+# for t in titles:
+#     mylsa.parse(t)
+# mylsa.build()
+# mylsa.calc()
+# mylsa.calct()
+# mylsa.calsim(title)   
+# mylsa.getnum()

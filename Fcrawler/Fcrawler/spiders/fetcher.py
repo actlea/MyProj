@@ -15,49 +15,51 @@ from scrapy_redis.spiders import RedisSpider
 import Utility 
 from Fcrawler.items  import UrlItem, PageItem
 from config import *
+from url import Url
+from Utility import Redis_Set
 
 global Depth_Table
+global HMTL_DIR
+MAX_PAGE = 200
+count=0
+
 
 
 reload(sys) 
 sys.setdefaultencoding('utf-8')  # @UndefinedVariable
 
 def timestamp():
-	return str(time.strftime("%y-%m-%d %H:%M:%S", time.localtime()))
+	return str(time.strftime("%m%d%H%M%S", time.localtime()))
 
 
 ''' 虎扑体育'''
 class HupuSpider(CrawlSpider):
 	name = 'hupu'
-	start_urls = ['http://www.hupu.com/',]
-	
-	
+	start_urls = ['http://www.hupu.com/',]	
 
 	def parse(self, response):	
-			print 'parse start'	
-			try:
-				
-				html = response.body
-				purl = response.url		
-				
-				
-				with open('111', 'w') as fw:
-					fw.write(html)
-				
+		global count
+		
+		try:
 			
-# 				link_list, pItem = Item_extract(html,purl)
-				link_list=[]
-				pItem={}
-				pItem['header']=response.header
-				for url in link_list:
-					print '%s start fetch' %(url)
-					yield Request(url['url'], callback=self.parse)		
+			html = response.body
+			purl = response.url	
+			with open(HMTL_DIR+timestamp(), 'w') as fw:
+				fw.write(html)	
+			URL_Visited_SET.push(purl)
+					
+			count+=1
+			if count>=MAX_PAGE:
+				return
+			
+			for url in Url.url_todo(html, purl):
+				try:					
+					yield Request(url['url'], callback=self.parse)	
+				except:
+					continue						
 				
-				yield pItem
-				yield link_list	
-				
-			except Exception,e: 
-				print 'parse error'
+		except : 
+			print 'parse error'
 		
 
 

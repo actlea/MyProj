@@ -6,6 +6,7 @@ sys.path.append('..')
 
 from pybloom import BloomFilter
 import random
+from Utility import DupeFilterTest,Redis_Set, Redis_Priority_Set
 
 
 #url后缀过滤
@@ -17,6 +18,16 @@ PROTOCOL = ('http', 'ftp','https')
 
 CRAWL_DEPTH=5
 Depth_Table = {}
+DIR = '/opt/Work/java_workspace/Fcrawler/Fcrawler/data'
+
+URL_Visited_SET = Redis_Set('url_visited') 
+HMTL_DIR = DIR+'HTML/'
+
+URL_UNVISITED_SET = BloomFilter(capacity=1000, error_rate=0.001) #
+URL_UNVISITED_Redis_SET = Redis_Set('url_unvisited') #url_unvisited_set
+
+UrlItem_UNV_Set = Redis_Priority_Set('urlItem_unvisited')         #urlitem_unvisited_set, url sorted by priority
+
 
 USER_AGENTS = [
     "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; AcooBrowser; .NET CLR 1.1.4322; .NET CLR 2.0.50727)",

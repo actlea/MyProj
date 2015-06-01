@@ -7,6 +7,7 @@ Created on May 27, 2015
 
 import time
 from hashlib import sha256
+import re
 
 
 def timestamp():
@@ -22,6 +23,10 @@ def clean_link(link_text):
     """
 
     return link_text.strip("\t\r\n '\"")
+
+def delete_punc(words):
+    re.sub("[！，。？：、]+".decode("utf-8"),"".decode("utf-8"),words)
+    
 #去除多余的空格
 def blank_delete(text):
     try:
@@ -30,9 +35,12 @@ def blank_delete(text):
         return text
 
 
-def text_format(text):
+def text_format(text, PUC_DELETE=True):
     if text:
-        return clean_link(blank_delete (ext(text)))
+        if PUC_DELETE:
+            return delete_punc(clean_link(blank_delete (ext(text))))
+        else:
+            return clean_link(blank_delete (ext(text)))
     else:
         return text    
     
