@@ -1,3 +1,187 @@
 2015-06-01 15:52:11,925 -8s message
 2015-06-01 15:52:39,699 -8s http://www.hupu.com/
 2015-06-02 10:09:48,104 -8s make dir /opt/Work/java_workspace/Fcrawler/Fcrawler/data/HTML/
+2015-06-03 16:07:07,514 -8s extract() error
+2015-06-03 16:07:40,907 -8s extract() error
+2015-06-03 16:07:40,948 -8s extract() error
+2015-06-03 16:07:40,975 -8s extract() error
+2015-06-03 16:07:41,109 -8s extract() error
+2015-06-03 16:07:41,174 -8s extract() error
+2015-06-03 16:07:41,260 -8s extract() error
+2015-06-03 16:07:41,263 -8s extract() error
+2015-06-03 16:08:06,024 -8s 0602152603.htmlextract() error
+2015-06-03 16:08:06,041 -8s 0602152552.htmlextract() error
+2015-06-03 16:08:06,065 -8s 0602152559.htmlextract() error
+2015-06-03 16:08:06,220 -8s 0602152556.htmlextract() error
+2015-06-03 16:08:06,285 -8s 0602152607.htmlextract() error
+2015-06-03 16:08:06,376 -8s 0602152557.htmlextract() error
+2015-06-03 16:08:06,379 -8s 0602152550.htmlextract() error
+2015-06-03 16:08:59,694 -8s 0602152603.html extract() error
+2015-06-03 16:08:59,713 -8s 0602152552.html extract() error
+2015-06-03 16:08:59,720 -8s 0602152559.html extract() error
+2015-06-03 16:08:59,770 -8s 0602152556.html extract() error
+2015-06-03 16:08:59,791 -8s 0602152607.html extract() error
+2015-06-03 16:08:59,860 -8s 0602152557.html extract() error
+2015-06-03 16:08:59,862 -8s 0602152550.html extract() error
+2015-06-03 17:17:59,907 -8s 
+    <html>
+    <head></head>
+    <body>
+        <div>
+            <article>
+                <p>This is a story about the life of Foo</p>
+                <p>The life of Foo was one of great foo</p>
+                <p>Foo foo, foo foo foo. Foo, foofoo?</p>
+                <p>Foo was no stranger to foo. For Foo did foo</p>
+            </article>
+        </div>
+        <div>
+            <div>
+                <p>Buy Bar Now!</p>
+                <p>Get The Bar Next Door!</p>
+                <p>Increase Your Bar!</p>
+                <p>Never Bar again!</p>
+            </div>
+        <div>
+            <footer>
+                <p>Who the hell is Boo. Who the hell is Far?</p
+            </footer>
+        </div>
+    </body>
+</html>
+ extract() error
+2015-06-03 17:19:51,444 -8s 
+    <html>
+    <head></head>
+    <body>
+        <div>
+            <article>
+                <p>This is a story about the life of Foo</p>
+                <p>The life of Foo was one of great foo</p>
+                <p>Foo foo, foo foo foo. Foo, foofoo?</p>
+                <p>Foo was no stranger to foo. For Foo did foo</p>
+            </article>
+        </div>
+        <div>
+            <div>
+                <p>Buy Bar Now!</p>
+                <p>Get The Bar Next Door!</p>
+                <p>Increase Your Bar!</p>
+                <p>Never Bar again!</p>
+            </div>
+        <div>
+            <footer>
+                <p>Who the hell is Boo. Who the hell is Far?</p
+            </footer>
+        </div>
+    </body>
+</html>
+ extract() error
+2015-06-03 17:23:29,318 -8s 
+    <html>
+    <head></head>
+    <body>
+        <div>
+            <article>
+                <p>This is a story about the life of Foo</p>
+                <p>The life of Foo was one of great foo</p>
+                <p>Foo foo, foo foo foo. Foo, foofoo?</p>
+                <p>Foo was no stranger to foo. For Foo did foo</p>
+            </article>
+        </div>
+        <div>
+            <div>
+                <p>Buy Bar Now!</p>
+                <p>Get The Bar Next Door!</p>
+                <p>Increase Your Bar!</p>
+                <p>Never Bar again!</p>
+            </div>
+        <div>
+            <footer>
+                <p>Who the hell is Boo. Who the hell is Far?</p
+            </footer>
+        </div>
+    </body>
+</html>
+ extract() error
+2015-06-03 17:28:05,357 -8s 
+    <html>
+    <head></head>
+    <body>
+        <div>
+            <article>
+                <p>This is a story about the life of Foo</p>
+                <p>The life of Foo was one of great foo</p>
+                <p>Foo foo, foo foo foo. Foo, foofoo?</p>
+                <p>Foo was no stranger to foo. For Foo did foo</p>
+            </article>
+        </div>
+        <div>
+            <div>
+                <p>Buy Bar Now!</p>
+                <p>Get The Bar Next Door!</p>
+                <p>Increase Your Bar!</p>
+                <p>Never Bar again!</p>
+            </div>
+        <div>
+            <footer>
+                <p>Who the hell is Boo. Who the hell is Far?</p
+            </footer>
+        </div>
+    </body>
+</html>
+ extract() error
+2015-06-03 17:28:30,715 -8s 
+    <html>
+    <head></head>
+    <body>
+        <div>
+            <article>
+                <p>This is a story about the life of Foo</p>
+                <p>The life of Foo was one of great foo</p>
+                <p>Foo foo, foo foo foo. Foo, foofoo?</p>
+                <p>Foo was no stranger to foo. For Foo did foo</p>
+            </article>
+        </div>
+        <div>
+            <div>
+                <p>Buy Bar Now!</p>
+                <p>Get The Bar Next Door!</p>
+                <p>Increase Your Bar!</p>
+                <p>Never Bar again!</p>
+            </div>
+        <div>
+            <footer>
+                <p>Who the hell is Boo. Who the hell is Far?</p
+            </footer>
+        </div>
+    </body>
+</html>
+ extract() error
+2015-06-03 17:28:52,166 -8s 
+    <html>
+    <head></head>
+    <body>
+        <div>
+            <article>
+                <p>This is a story about the life of Foo</p>
+                <p>The life of Foo was one of great foo</p>
+                <p>Foo foo, foo foo foo. Foo, foofoo?</p>
+                <p>Foo was no stranger to foo. For Foo did foo</p>
+            </article>
+        </div>
+        <div>
+            <div>
+                <p>Buy Bar Now!</p>
+                <p>Get The Bar Next Door!</p>
+                <p>Increase Your Bar!</p>
+                <p>Never Bar again!</p>
+            </div>
+        <div>
+            <footer>
+                <p>Who the hell is Boo. Who the hell is Far?</p
+            </footer>
+        </div>
+    </body>
+</html>
+ extract() error

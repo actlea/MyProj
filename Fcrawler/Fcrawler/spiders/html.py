@@ -13,7 +13,14 @@ import jieba.analyse
 import re
 import HTMLParser
 import pickle
+import eatiht.etv2 as etv2
+import chardet
 
+try:    
+    from cStringIO import StringIO as BytesIO
+except ImportError:
+    from io import BytesIO
+    
 from config import *
 
 
@@ -25,6 +32,21 @@ Punctuation = "[！，。？：、]+"
 USERDICT = DIR+'dict.txt'
 NBA_DICT = DIR+'nba.txt'
 HTML_DIR = DIR+'HTML/'
+
+# decided to use backslashes for readability?
+TEXT_FINDER_XPATH = '//body\
+                        //*[not(\
+                            self::script or \
+                            self::noscript or \
+                            self::style or \
+                            self::i or \
+                            self::b or \
+                            self::strong or \
+                            self::span or \
+                            self::a)] \
+                            /text()[string-length(normalize-space()) > 20]/..'
+
+
 
 def stopwords(file):
     if os.path.exists('/opt/data/stopwords.dict'):
@@ -74,16 +96,14 @@ class Html:
         self.base_url = base_url
         self.hxs = lxml.html.fromstring(self.html)
     
-    def html_content(self, name):
+    def html_content(self, filelike_or_str):
         '''html from file or str'''
-        if os.path.exists(HTML_DIR+name):            
-            with open(HTML_DIR+name, 'r') as fr:
-                content = fr.read()
+        if os.path.exists(HTML_DIR+filelike_or_str):            
+            with open(HTML_DIR+filelike_or_str, 'r') as fr:
+                content = fr.read()           
             return content
-        else:
-            return name
-        
-    
+        else:           
+            return filelike_or_str   
         
             
     def getMainText(self): 
@@ -122,22 +142,106 @@ class Html:
     def page_score(self, keyword):
         
         pass
+
+
+
+def get_tree(html_string, encoding=''):
+    if encoding:
+        html_tree = lxml.html.parse(BytesIO(html_string), lxml.html.HTMLParser(encoding=encoding,remove_blank_text=True))
+    else:
+        html_tree = lxml.html.fromstring(html_string)        
+    return html_tree
+     
+def extract(htmlstring_or_filelike):
+    html_string = htmlstring_or_filelike
+    if os.path.exists(HTML_DIR+htmlstring_or_filelike):
+       with open(HTML_DIR+htmlstring_or_filelike, 'r') as fr:
+                html_string = fr.read()
     
+#     encoding = chardet.detect(html_string)['encoding']               
+    html_tree = get_tree(html_string)      
+       
+    subtrees = etv2.get_textnode_subtrees(html_tree, xpath_to_text = TEXT_FINDER_XPATH)
+    # calculate AABSL
+    avg, _, _ = etv2.calcavg_avgstrlen_subtrees(subtrees)
+
+    # "high-pass" filter
+    filtered = [subtree for subtree in subtrees
+                if subtree.ttl_strlen > avg]
+
+    paths = [subtree.parent_path for subtree in filtered]
+
+    hist = etv2.get_xpath_frequencydistribution(paths)
+
+    target_subtrees = [stree for stree in subtrees
+                       if hist[0][0] in stree.parent_path]
+                
+    title = html_tree.find(".//title")   
+    if title:
+        title_content = title.text_content()        
+    else:
+        title_content = ''
+
+    return etv2.TextNodeTree(title_content, target_subtrees, hist)   
+
+def get_main_text(htmlstring_or_filelike):
+    try:
+        tree = extract(htmlstring_or_filelike)
+        str = tree.get_html_string()
+        return str
+    except:
+        Logger.error(htmlstring_or_filelike+' extract() error')
+        print htmlstring_or_filelike+' extract() error'
+        return None
+        
+def test():
+    import os
+    if not os.path.exists(HTML_DIR+'/Text/'):
+        os.mkdir(HTML_DIR+'/Text/')
     
-    
-    
+    for i in os.listdir(HTML_DIR):        
+        if os.path.isfile(HTML_DIR+i):
+            str = get_main_text(i)
+            if str:
+                print '%s : succeed' %(i)
+                name = i.split('.')[0]+'_.html'
+                with open(HTML_DIR+'/Text/'+name, 'w') as fw:
+                    fw.write(str)
+                
     
     
     
 if __name__=='__main__':
-    base_url = 'http://www.hupu.com/'
-    with open('333', 'w') as fw:
-        for i in os.listdir('../data/HTML'):  
-            print i 
-            HTML = Html(i, base_url)        
-            d = HTML.parse()
-            str = HTML.getMainText()
-            fw.write(str+'\n')
+#     test()
+    content = '''
+    <html>
+    <head></head>
+    <body>
+        <div>
+            <article>
+                <p>This is a story about the life of Foo</p>
+                <p>The life of Foo was one of great foo</p>
+                <p>Foo foo, foo foo foo. Foo, foofoo?</p>
+                <p>Foo was no stranger to foo. For Foo did foo</p>
+            </article>
+        </div>
+        <div>
+            <div>
+                <p>Buy Bar Now Buy Buy Buy Buy Buy Buy Buy Buy Buy Buy Buy!</p>
+                <p>Get The Bar Next Door!</p>
+                <p>Increase Your Bar!</p>
+                <p>Never Bar again!</p>
+            </div>
+        <div>
+            <footer>
+                <p>Who the hell is Boo. Who the hell is Far?</p
+            </footer>
+        </div>
+    </body>
+</html>
+'''
+    str = get_main_text(content)
+    print str
 
 
     
