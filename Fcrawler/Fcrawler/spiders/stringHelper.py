@@ -55,6 +55,16 @@ def url_hashcode(url):
     int_code = int(code, 16)
     return int_code
 
+def match(str1, str2):
+    pattern= str1+'*'   
+    pattern = re.compile(pattern, re.M|re.I)    
+    
+    if pattern.match(str2 ):
+        return True
+    else:
+        return False
+     
+
 
 class Logger:                                                                      
         HEADER = '\033[95m'                                                        
@@ -101,11 +111,11 @@ class Logger:
 
 
 if __name__=='__main__':
-    Logger.log_normal("This is a normal message!")
-    Logger.log_fail("This is a fail message!")
-    Logger.log_high("This is a high-light message!")
-    Logger.info('message')
-    
+#     Logger.log_normal("This is a normal message!")
+#     Logger.log_fail("This is a fail message!")
+#     Logger.log_high("This is a high-light message!")
+#     Logger.info('message')
+    print match('Comment', 'comments')
     
     
     

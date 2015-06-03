@@ -4,7 +4,7 @@
 import sys
 sys.path.append('..')
 
-from pybloom import BloomFilter
+from pybloom import ScalableBloomFilter
 import random
 from Utility import DupeFilterTest,Redis_Set, Redis_Priority_Set
 import logging
@@ -15,6 +15,11 @@ IGNORE_EXT = ('js','css','png','jpg','gif','bmp','svg','exif',\
             'jpeg','exe','doc','docx','ppt','pptx','pdf','ico',\
             'wmv','avi','swf','apk','xml','xls','thmx','py')
 
+#过滤netloc部分的关键字
+IGNORE_KEYWORD=('comment', 'game', 'app', 'money', 'finance','sax','vip', 'stock','help','ka', 'auto',\
+                'caipiao')
+
+
 PROTOCOL = ('http', 'ftp','https')
 
 CRAWL_DEPTH=5
@@ -23,7 +28,7 @@ DIR = '/opt/Work/java_workspace/Fcrawler/Fcrawler/data/'
 
 HMTL_DIR = DIR+'HTML/'
 
-URL_UNVISITED_SET = BloomFilter(capacity=1000, error_rate=0.001)    #
+URL_UNVISITED_SET = ScalableBloomFilter(mode=ScalableBloomFilter.SMALL_SET_GROWTH)    #
 
 URL_UNVISITED_RSET = Redis_Set('url_unvisited')                #url_unvisited_set
 

@@ -2,6 +2,7 @@
 # actlea  2015-05-20
 
 import sys
+from Fcrawler.spiders.html import HTML_DIR
 sys.path.append('..')
 import time
 import urlparse
@@ -29,6 +30,12 @@ sys.setdefaultencoding('utf-8')
 
 
 class Url:
+	if  not os.path.exists(DIR):
+		os.mkdir(DIR)	
+		Logger.info('make dir '+DIR)
+	if not os.path.exists(HMTL_DIR):
+		os.mkdir(HTML_DIR)
+		Logger.info('make dir '+HTML_DIR)			
 				
 	@classmethod
 	def url_absolute(cls, url, base_url):
@@ -92,6 +99,22 @@ class Url:
 		if urlstruc[0] not in PROTOCOL:
 			return False
 		return True
+
+	@classmethod
+	def url_keyword_ignore(cls,url):
+		urlstruc = urlparse.urlparse(url)
+		netloc = urlstruc[1]
+		words = netloc.split('.')
+		
+		stop=1
+		if len(words)>1:
+			stop=2
+	
+		for i in words[0:stop]:
+			for j in IGNORE_KEYWORD:
+				if match(i, j):
+					return True
+		return False
 		
 	@classmethod
 	def url_extract(cls, html, base_url):
@@ -117,8 +140,8 @@ class Url:
 		flag = url in URL_VISITED_SET.get_all()
 		if flag: return True		
 		#bloom filter	
-# 		flag = URL_UNVISITED_SET.add(url)
-# 		if flag: return True
+		flag = URL_UNVISITED_SET.add(url)
+		if flag: return True
 		flag = URL_UNVISITED_RSET.push(url)==0 #push url into redis set
 		if flag: return True
 
@@ -177,13 +200,12 @@ class Url:
 				except:
 					continue
 	@classmethod
-	def urlItem_redis_save(cls, urItem_list):
+	def urlItem_redis_save(cls, urItem):
 		''' save urlitem in redis set'''
-		for i in urItem_list:
-			try:
-				URL_ITEM_UNV_SET.push(i)
-			except:
-				Logger.log_fail('urlItem_redis_save error')
+		try:
+			URL_ITEM_UNV_SET.push(urItem)
+		except:
+			Logger.error('urlItem_redis_save error')
 		
 			
 	@classmethod
@@ -194,30 +216,67 @@ class Url:
 		
 		#depth of purl
 		depth = cls.url_depth(purl)
-		#generate UrlItem
-		urlitem_list=[]
+		#generate UrlItem		
 		for i in cls.url_filter(html, domain_control, purl):			
 			item = cls.urlItem(i, purl,depth)			
-			urlitem_list.append(item)
-# 			yield urlitem_list
+			cls.urlItem_redis_save(item)
 		
 		#save to file		
-		cls.urlItem__file_save(urlitem_list)
-		#save to redis
-		cls.urlItem_redis_save(urlitem_list)
+# 		cls.urlItem__file_save(urlitem_list)
 		
+		
+
+def urlItem_read():
+	with open('222','w') as fw:	
+		for i in URL_ITEM_UNV_SET.get_all():
+			url = i['url']
+			if i['anchor']:
+				anchor = i['anchor']
+			else:
+				anchor = ''
+				
+			if not Url.url_keyword_ignore(url):
+				fw.write(url+' | ' + anchor+'\n')
+			
 
 def url_priority(urlItem):
 	pass
 
 
 
-if __name__ == '__main__':
-	html_content = ''
-	link_list = []
-	with open('../data/HTML/0601151532.html', 'r') as fr:
-		html_content = fr.read()
+if __name__ == '__main__':	
 
-	purl='http://www.hupu.com/'
-	Url.url_todo(html_content, purl)
+	with open('111', 'w') as fw:
+		for i in URL_ITEM_UNV_SET.get_all():
+			url = i['url']
+			if i['anchor']:
+				anchor = i['anchor']
+			else:
+				anchor = ''			
+			fw.write(url+' | '+anchor+'\n')
+ 			
+	urlItem_read()
+# 	with open('../data/HTML/0602152144.html', 'r') as fr:
+# 		html = fr.read()
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	

@@ -77,7 +77,7 @@ class Html:
     def html_content(self, name):
         '''html from file or str'''
         if os.path.exists(HTML_DIR+name):            
-            with open(HTML_DIR+file, 'r') as fr:
+            with open(HTML_DIR+name, 'r') as fr:
                 content = fr.read()
             return content
         else:
@@ -90,7 +90,7 @@ class Html:
         try:      
             text = ''.join(self.hxs.xpath('//a/text() | //p/text() | //span/text() | //h1/text()')).decode('utf-8')
             text = blank_delete(text)
-            print text
+#             print text
             return text
         except:
             print 'getMainText() error'      
@@ -131,13 +131,15 @@ class Html:
     
 if __name__=='__main__':
     base_url = 'http://www.hupu.com/'
-    file = '1.html'
-    HTML = Html(file, base_url)
-    d = HTML.parse()
-    print pickle.loads(d)
+    with open('333', 'w') as fw:
+        for i in os.listdir('../data/HTML'):  
+            print i 
+            HTML = Html(i, base_url)        
+            d = HTML.parse()
+            str = HTML.getMainText()
+            fw.write(str+'\n')
 
-#     word.searchWord()
-#     word.preciseWord() 
+
     
    
     

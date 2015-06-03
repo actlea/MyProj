@@ -86,9 +86,11 @@ class Redis_Set(Base):
             return self._decode_(data)
         return data
     
-    def get_all(self):
-        '''Return Set'''
-        data = self.server.smembers(self.key)
+    def get_all(self, mode=True):
+        '''Return Set, if mode=True, then use in URL_SET,else use in URL_ITEM_SET '''
+        if mode:
+            data = self.server.smembers(self.key)
+        
         return data
         
         
@@ -112,8 +114,19 @@ class Redis_Priority_Set(Base):
         
         def _decode_(self, data):
             d = pickle.loads(data)
-            return d     
-        
+            return d  
+           
+        def get_all(self, mode=True):
+            '''Return Set, if mode=True, then use in URL_SET,else use in URL_ITEM_SET '''
+           
+            results = self.server.zrange(self.key, 0, -1) 
+            data=[]
+            if results:
+                for i in results:
+                    yield self._decode_(i)
+                                   
+            
+    
         def push(self, urlItem):
             data = self._encode_(urlItem)            
             pairs = {data: urlItem['priority']}
@@ -137,9 +150,9 @@ class Redis_Priority_Set(Base):
     
 if __name__=='__main__':
      from config import *
-     set = URL_VISITED_SET.get_all()
-     flag = 'http://www.hupu.com/'  in set 
-     print flag
+     res = URL_ITEM_UNV_SET.get_all()
+     print res
+     
      
         
         
