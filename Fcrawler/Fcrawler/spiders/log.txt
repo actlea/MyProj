@@ -185,3 +185,30 @@
     </body>
 </html>
  extract() error
+2015-06-03 20:52:48,918 -8s 
+    <html>
+    <head></head>
+    <body>
+        <div>
+            <article>
+                <p>This is a story about the life of Foo</p>
+                <p>The life of Foo was one of great foo</p>
+                <p>Foo foo, foo foo foo. Foo, foofoo?</p>
+                <p>Foo was no stranger to foo. For Foo did foo</p>
+            </article>
+        </div>
+        <div>
+            <div>
+                <p>Buy Bar Now Buy Buy Buy Buy Buy Buy Buy Buy Buy Buy Buy!</p>
+                <p>Get The Bar Next Door!</p>
+                <p>Increase Your Bar!</p>
+                <p>Never Bar again!</p>
+            </div>
+        <div>
+            <footer>
+                <p>Who the hell is Boo. Who the hell is Far?</p
+            </footer>
+        </div>
+    </body>
+</html>
+ extract() error

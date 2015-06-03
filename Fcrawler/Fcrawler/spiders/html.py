@@ -151,15 +151,20 @@ def get_tree(html_string, encoding=''):
     else:
         html_tree = lxml.html.fromstring(html_string)        
     return html_tree
-     
-def extract(htmlstring_or_filelike):
+  
+  
+def get_html_tree(htmlstring_or_filelike):
     html_string = htmlstring_or_filelike
     if os.path.exists(HTML_DIR+htmlstring_or_filelike):
        with open(HTML_DIR+htmlstring_or_filelike, 'r') as fr:
-                html_string = fr.read()
-    
-#     encoding = chardet.detect(html_string)['encoding']               
-    html_tree = get_tree(html_string)      
+                html_string = fr.read()              
+    html_tree = get_tree(html_string)
+    return html_tree          
+   
+     
+def extract(htmlstring_or_filelike):
+                  
+    html_tree = get_html_tree(htmlstring_or_filelike)      
        
     subtrees = etv2.get_textnode_subtrees(html_tree, xpath_to_text = TEXT_FINDER_XPATH)
     # calculate AABSL
@@ -184,15 +189,27 @@ def extract(htmlstring_or_filelike):
 
     return etv2.TextNodeTree(title_content, target_subtrees, hist)   
 
+
+def exract_v2(htmlstring_or_filelike):
+    html_tree = get_html_tree(htmlstring_or_filelike)
+    xpath_finder = html_tree.getroot().getroottree().getpath
+    
+
+
+
+
+
 def get_main_text(htmlstring_or_filelike):
     try:
         tree = extract(htmlstring_or_filelike)
+#         tree.bootstrapify()
         str = tree.get_html_string()
         return str
     except:
         Logger.error(htmlstring_or_filelike+' extract() error')
         print htmlstring_or_filelike+' extract() error'
         return None
+
         
 def test():
     import os
@@ -240,8 +257,10 @@ if __name__=='__main__':
     </body>
 </html>
 '''
-    str = get_main_text(content)
-    print str
+    import eatiht.v2 as v2
+    file = HTML_DIR+'0602152545.html'
+    print v2.extract(file)
+    
 
 
     
