@@ -191,10 +191,13 @@ def extract(htmlstring_or_filelike):
 
 
 def exract_v2(htmlstring_or_filelike):
-    html_tree = get_html_tree(htmlstring_or_filelike)
-    xpath_finder = html_tree.getroot().getroottree().getpath
-    
-
+    import eatiht.v2 as v2
+    if os.path.exists(HTML_DIR+htmlstring_or_filelike):
+        fr = open(HTML_DIR+htmlstring_or_filelike, 'r')
+        text = v2.extract(fr)
+    else:
+        text = v2.extract(htmlstring_or_filelike)
+    return text
 
 
 
@@ -258,8 +261,13 @@ if __name__=='__main__':
 </html>
 '''
     import eatiht.v2 as v2
-    file = HTML_DIR+'0602152545.html'
-    print v2.extract(file)
+    file = '0602152604.html'
+    get_main_text(file)
+#     res = v2.extract_more(content)
+#     print res[0]
+#     print res[1]
+#     print res[2]
+#     print res[3]
     
 
 
