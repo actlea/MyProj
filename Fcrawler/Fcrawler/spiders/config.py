@@ -33,7 +33,9 @@ URL_UNVISITED_SET = ScalableBloomFilter(mode=ScalableBloomFilter.SMALL_SET_GROWT
 URL_UNVISITED_RSET = Redis_Set('url_unvisited')                #url_unvisited_set
 
 URL_ITEM_UNV_SET = Redis_Priority_Set('urlItem_unvisited')           #urlitem_unvisited_set, url sorted by priority
-URL_VISITED_SET = Redis_Set('url_visited')                          #
+URL_VISITED_SET = Redis_Set('url_visited')  
+HTML_FETCH_SET =  Redis_Set('HTML_TABLE')
+                       #
 
 USER_AGENTS = [
     "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; AcooBrowser; .NET CLR 1.1.4322; .NET CLR 2.0.50727)",

@@ -24,38 +24,15 @@ class UrlItem(Item):
 	anchor = Field()
 	
 
-def urlitem(url, purl, time, depth, priority, anchor):
-	item = UrlItem()
-	item['url'] = url
-	item['purl'] = purl
-	item['time'] = time
-	item['depth'] = depth
-	item['priority'] = priority
-	item['anchor'] = anchor
-	return item
-
-
-
 class PageItem(Item):
 	original_url = Field()	
-	time = Field()
-	depth = Field()
+	time = Field()	
 	content = Field()
-	header = Field()
-	priority = Field()
-	title = Field()
-	encode = Field()
+# 	header = Field()
+	priority = Field()	
+	hash = Field()
+	main_text = Field()
 	
-def pageitem(original_url, time, depth, content, priority,title='', encode='',header={}):
-	item = PageItem()
-	item['original_url'] = original_url
-	item['content'] = content #must be xml_content
-	item['time'] = time
-	item['depth'] = depth
-	item['priority'] = priority
-	item['header'] = header
-	item['title'] = title
-	item['encode']=encode
 
 
 class FetchItem(Item):

@@ -212,3 +212,58 @@
     </body>
 </html>
  extract() error
+2015-06-08 09:25:01,332 -8s 0602152604.html extract() error
+2015-06-09 10:38:49,637 -8s 
+    <html>
+    <head></head>
+    <body>
+        <div>
+            <article>
+                <p>This is a story about the life of Foo</p>
+                <p>The life of Foo was one of great foo</p>
+                <p>Foo foo, foo foo foo. Foo, foofoo?</p>
+                <p>Foo was no stranger to foo. For Foo did foo</p>
+            </article>
+        </div>
+        <div>
+            <div>
+                <p>Buy Bar Now Buy Buy Buy Buy Buy Buy Buy Buy Buy Buy Buy!</p>
+                <p>Get The Bar Next Door!</p>
+                <p>Increase Your Bar!</p>
+                <p>Never Bar again!</p>
+            </div>
+        <div>
+            <footer>
+                <p>Who the hell is Boo. Who the hell is Far?</p
+            </footer>
+        </div>
+    </body>
+</html>
+ extract() error
+2015-06-09 10:41:19,625 -8s 
+    <html>
+    <head></head>
+    <body>
+        <div>
+            <article>
+                <p>This is a story about the life of Foo</p>
+                <p>The life of Foo was one of great foo</p>
+                <p>Foo foo, foo foo foo. Foo, foofoo?</p>
+                <p>Foo was no stranger to foo. For Foo did foo</p>
+            </article>
+        </div>
+        <div>
+            <div>
+                <p>Buy Bar Now Buy Buy Buy Buy Buy Buy Buy Buy Buy Buy Buy!</p>
+                <p>Get The Bar Next Door!</p>
+                <p>Increase Your Bar!</p>
+                <p>Never Bar again!</p>
+            </div>
+        <div>
+            <footer>
+                <p>Who the hell is Boo. Who the hell is Far?</p
+            </footer>
+        </div>
+    </body>
+</html>
+ extract() error

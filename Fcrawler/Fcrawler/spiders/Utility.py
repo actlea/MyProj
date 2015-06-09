@@ -5,7 +5,6 @@
 
 import redis
 import sys
-import MySQLdb
 import time
 from scrapy.utils.request import request_fingerprint
 from scrapy_redis.queue import Base
@@ -18,11 +17,6 @@ import pickle
 
 def getRedis(db=0):
     return redis.StrictRedis(host='localhost', port=6379, db=db)
-
-def getMysql():
-    return MySQLdb.connect(host='localhost',\
-            user='root',passwd='zjm',db="spider_db",port=3306,charset="utf8")
-    
  
 
 # allow test settings from environment

@@ -15,6 +15,7 @@ import HTMLParser
 import pickle
 import eatiht.etv2 as etv2
 import chardet
+from hashlib import sha1
 
 try:    
     from cStringIO import StringIO as BytesIO
@@ -91,8 +92,8 @@ class Word:
     
 
 class Html:
-    def __init__(self, name, base_url=''):
-        self.html = self.html_content(name)
+    def __init__(self, filelike_or_str, base_url='null'):
+        self.html = self.html_content(filelike_or_str)
         self.base_url = base_url
         self.hxs = lxml.html.fromstring(self.html)
     
@@ -103,92 +104,51 @@ class Html:
                 content = fr.read()           
             return content
         else:           
-            return filelike_or_str   
-        
+            return filelike_or_str         
             
-    def getMainText(self): 
-        try:      
-            text = ''.join(self.hxs.xpath('//a/text() | //p/text() | //span/text() | //h1/text()')).decode('utf-8')
-            text = blank_delete(text)
-#             print text
-            return text
-        except:
-            print 'getMainText() error'      
-        
-        
-        
     
     def parse(self):
         title = blank_delete( ext(self.hxs.xpath('//title/text()')) )
 #         encode = blank_delete( ext( self.hxs.xpath('//meta/@charset')) )
         encode = re.search(r'charset=(.*).', self.html) 
-        if encode: encode = encode.group(1)        
+        if encode: encode = encode.group(1)       
        
-        #get main text
-        main_text = self.getMainText()
+       
         item = PageItem()
         item['original_url'] = self.base_url
-        item['content'] = main_text #must be xml_content
+#         item['content'] = self.html 
+        item['priority']=0
+        item['main_text'] = get_main_text(self.html)
+               
+#         item['encode']=encode
+        
+        #hash html
+        fp = sha1()
+        fp.update(item['original_url'])
+        fp.update(self.html)
+        hash_code = fp.hexdigest()
+        hash_code = int(hash_code, 16)
+        item['hash'] = hash_code
+        
         item['time'] = timestamp() 
-        item['title'] = title
-        item['encode']=encode
         
         d = pickle.dumps(item, protocol=-1)
-        return d
+        return (d, HTML_FETCH_SET.push(hash_code) ) 
+              
+        
     
-        
-        
     
-    def page_score(self, keyword):
-        
-        pass
 
 
-
-def get_tree(html_string, encoding=''):
-    if encoding:
-        html_tree = lxml.html.parse(BytesIO(html_string), lxml.html.HTMLParser(encoding=encoding,remove_blank_text=True))
-    else:
-        html_tree = lxml.html.fromstring(html_string)        
-    return html_tree
-  
-  
-def get_html_tree(htmlstring_or_filelike):
-    html_string = htmlstring_or_filelike
+#use to compute html priority     
+def extract(htmlstring_or_filelike):                  
     if os.path.exists(HTML_DIR+htmlstring_or_filelike):
-       with open(HTML_DIR+htmlstring_or_filelike, 'r') as fr:
-                html_string = fr.read()              
-    html_tree = get_tree(html_string)
-    return html_tree          
-   
-     
-def extract(htmlstring_or_filelike):
-                  
-    html_tree = get_html_tree(htmlstring_or_filelike)      
-       
-    subtrees = etv2.get_textnode_subtrees(html_tree, xpath_to_text = TEXT_FINDER_XPATH)
-    # calculate AABSL
-    avg, _, _ = etv2.calcavg_avgstrlen_subtrees(subtrees)
-
-    # "high-pass" filter
-    filtered = [subtree for subtree in subtrees
-                if subtree.ttl_strlen > avg]
-
-    paths = [subtree.parent_path for subtree in filtered]
-
-    hist = etv2.get_xpath_frequencydistribution(paths)
-
-    target_subtrees = [stree for stree in subtrees
-                       if hist[0][0] in stree.parent_path]
-                
-    title = html_tree.find(".//title")   
-    if title:
-        title_content = title.text_content()        
+        fr = open(HTML_DIR+htmlstring_or_filelike, 'r')
+        return etv2.extract(fr)
     else:
-        title_content = ''
-
-    return etv2.TextNodeTree(title_content, target_subtrees, hist)   
-
+        return etv2.extract(htmlstring_or_filelike)               
+     
+    
 
 def exract_v2(htmlstring_or_filelike):
     import eatiht.v2 as v2
@@ -203,16 +163,10 @@ def exract_v2(htmlstring_or_filelike):
 
 
 def get_main_text(htmlstring_or_filelike):
-    try:
-        tree = extract(htmlstring_or_filelike)
+    tree = extract(htmlstring_or_filelike)
 #         tree.bootstrapify()
-        str = tree.get_html_string()
-        return str
-    except:
-        Logger.error(htmlstring_or_filelike+' extract() error')
-        print htmlstring_or_filelike+' extract() error'
-        return None
-
+    str = tree.get_html_string()
+    return str
         
 def test():
     import os
@@ -262,7 +216,7 @@ if __name__=='__main__':
 '''
     import eatiht.v2 as v2
     file = '0602152604.html'
-    get_main_text(file)
+    print get_main_text(content)
 #     res = v2.extract_more(content)
 #     print res[0]
 #     print res[1]

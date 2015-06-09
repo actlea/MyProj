@@ -5,6 +5,7 @@ encoding//Fcrawler/settings.py=utf-8
 encoding//Fcrawler/spiders/LSA.py=utf-8
 encoding//Fcrawler/spiders/Utility.py=utf-8
 encoding//Fcrawler/spiders/config.py=utf-8
+encoding//Fcrawler/spiders/database.py=utf-8
 encoding//Fcrawler/spiders/fetcher.py=utf-8
 encoding//Fcrawler/spiders/html.py=utf-8
 encoding//Fcrawler/spiders/stringHelper.py=utf-8

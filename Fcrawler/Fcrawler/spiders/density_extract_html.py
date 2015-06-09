@@ -9,6 +9,7 @@ import formatter
 import htmllib
 
 from cStringIO import StringIO 
+from config import *
 
 
 class Paragraph:
@@ -89,7 +90,14 @@ class TrackingParser(htmllib.HTMLParser):
 
 
 
-def extract_text(html):
+def extract_text(html_htmlfilelike):
+    try:
+        fr = open(HMTL_DIR+html_htmlfilelike, 'r')
+        html = fr.read()
+    except (AttributeError):
+        html = html_htmlfilelike
+    except IOError:
+            html = html_htmlfilelike
     # Derive from formatter.AbstractWriter to store paragraphs.
     writer = LineWriter()
     # Default formatter sends commands to our writer.
@@ -131,4 +139,5 @@ if __name__ == '__main__':
     </body>
 </html>
     '''
-    print extract_text(content)
+    file = '0602152604.html'
+    print extract_text(file)
