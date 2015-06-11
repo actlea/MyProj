@@ -7,7 +7,7 @@ sys.path.append('..')
 from pybloom import ScalableBloomFilter
 import random
 from Utility import DupeFilterTest,Redis_Set, Redis_Priority_Set
-import logging
+
 
 
 #url后缀过滤
@@ -17,7 +17,7 @@ IGNORE_EXT = ('js','css','png','jpg','gif','bmp','svg','exif',\
 
 #过滤netloc部分的关键字
 IGNORE_KEYWORD=('comment', 'game', 'app', 'money', 'finance','sax','vip', 'stock','help','ka', 'auto',\
-                'caipiao')
+                'caipiao','ask')
 
 
 PROTOCOL = ('http', 'ftp','https')
@@ -26,7 +26,8 @@ CRAWL_DEPTH=5
 Depth_Table = {}
 DIR = '/opt/Work/java_workspace/Fcrawler/Fcrawler/data/'
 
-HMTL_DIR = DIR+'HTML/'
+HMTL_DIR = DIR+'HTML/source/'
+HTML_TEXT_DIR = DIR+'HTML/text/'
 
 URL_UNVISITED_SET = ScalableBloomFilter(mode=ScalableBloomFilter.SMALL_SET_GROWTH)    #
 
@@ -35,6 +36,11 @@ URL_UNVISITED_RSET = Redis_Set('url_unvisited')                #url_unvisited_se
 URL_ITEM_UNV_SET = Redis_Priority_Set('urlItem_unvisited')           #urlitem_unvisited_set, url sorted by priority
 URL_VISITED_SET = Redis_Set('url_visited')  
 HTML_FETCH_SET =  Redis_Set('HTML_TABLE')
+
+#scrapy log file
+SCRAPY_LOG = '/opt/Work/java_workspace/Fcrawler/scrapy_log.log'
+
+ENCODING=('utf-8', 'GB2312', 'ISO-8859-2')
                        #
 
 USER_AGENTS = [

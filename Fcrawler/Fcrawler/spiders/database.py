@@ -10,6 +10,8 @@ Created on Jun 9, 2015
 import MySQLdb
 import pickle
 import sys
+from url import Url
+from stringHelper import Logger
 
 
 reload(sys) 
@@ -86,18 +88,18 @@ class BaseDb:
         print "[exception]type=%s,url=%s" % (type,url)
         self.execsql(sql)
 
-    def query(self, sql, record_callback):
+    def query(self, sql):
         cur = self.db.cursor(cursorclass = MySQLdb.cursors.DictCursor)
         cur.execute(sql)
         numrows = int(cur.rowcount)
         for i in range(numrows):
             fields = cur.fetchone()
-            record_callback(fields)
+            yield fields
 
     
 
 
-class Parse_HTML():
+class HTML_URL_DB():
     def __init__(self):
         self.db = BaseDb()
         self.db.connectdb()
@@ -109,50 +111,72 @@ class Parse_HTML():
          original_url        varchar(100),                
          priority            float(3,2),
          main_text           text,
-         hash                char(48),
-         time                date
+         hash                char(60),
+         encode              char(10),
+         time                TIMESTAMP
          
          )ENGINE=MyISAM DEFAULT CHARSET=utf8         
         """
         self.db.execsql(sql)
-       
+        
+        sql = """
+        create table if not exists url_item(
+        row_id INTEGER PRIMARY KEY auto_increment,
+        url     varchar(100),
+        purl    varchar(100),
+        depth   Integer,
+        priority Integer,
+        anchor  varchar(200),
+        time    TIMESTAMP
+        )ENGINE=MyISAM DEFAULT CHARSET=utf8
+        """
+        self.db.execsql(sql)
         
     
     def html_insert(self, html_item_tuple, table_name='html'):
         if html_item_tuple is not None:           
-            item = pickle.loads(html_item_tuple[0])
+            item = html_item_tuple[0]
             flag = html_item_tuple[1]
             
-            sql = self.db.sql_insert(table_name, item)
+            sql = self.db.sql_insert(table_name, item)  
             
-#             import chardet
-#             import codecs
-#             look = codecs.lookup('utf-8')
-#             sql = codecs.encode(sql)
-#             print chardet.detect(sql)['encoding']
-            
-            with open('sql111', 'w') as fw:
-                fw.write(sql)
-            
-            if True and self.db.execsql(sql):
+            if flag and self.db.execsql(sql):
                 return True
             else:
                 url = item['original_url']
                 self.db.exception(url, 3)
                 return False
-            
+    
+    
+    def url_item_insert(self, html, purl, table_name='url_item'):
+        for item in Url.url_todo(html, purl):
+            sql = self.db.sql_insert(table_name, item)
+            self.db.execsql(sql)
+            Logger.info(purl+' url_item_insert')  
+        
+        
+    
+    def select(self):
+        import lxml.html as html
+        
+        sql = 'select main_text from html'       
+        for i in self.db.query(sql):
+            text = i['main_text']
+            if text is not None:
+                text = text.encode('utf-8')
+                print type(text)
+                hxs=html.fromstring(text)
+                title = hxs.xpath('.//title/text()')
+                if title is not None:
+                    print title[0] 
 
 
-
-
-
+    
+    
 if __name__=='__main__':
-    PH = Parse_HTML()
+    PH = HTML_URL_DB()
     PH.create_table()
-    from html import Html
-    HT = Html('0602152604.html' )
-    res = HT.parse() 
-    PH.html_insert(res)
+
 
 
 

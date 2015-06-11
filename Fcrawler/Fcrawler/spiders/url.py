@@ -2,7 +2,7 @@
 # actlea  2015-05-20
 
 import sys
-from Fcrawler.spiders.html import HTML_DIR
+from Fcrawler.spiders.config import *
 sys.path.append('..')
 import time
 import urlparse
@@ -18,7 +18,6 @@ from config import *
 from stringHelper import *
 from Fcrawler.items import UrlItem,PageItem
 from Utility import Redis_Set, Redis_Priority_Set
-from stringHelper import Logger
 
 global IGNORE_EXT 	#url后缀过滤
 global PROTOCOL
@@ -32,10 +31,11 @@ sys.setdefaultencoding('utf-8')
 class Url:
 	if  not os.path.exists(DIR):
 		os.mkdir(DIR)	
-		Logger.info('make dir '+DIR)
+	
+		
 	if not os.path.exists(HMTL_DIR):
-		os.mkdir(HTML_DIR)
-		Logger.info('make dir '+HTML_DIR)			
+		os.mkdir(HMTL_DIR)
+					
 				
 	@classmethod
 	def url_absolute(cls, url, base_url):
@@ -80,7 +80,7 @@ class Url:
 	
 		urll=url_d.split('.')
 		purll = purl_d.split('.')
-		if urll[-1]==purll[-1] and urll[-2]==purll[-2]:
+		if len(purl)>2 and len(url)>2 and urll[-1]==purll[-1] and urll[-2]==purll[-2]:
 			return True
 		else:
 			return False
@@ -155,16 +155,18 @@ class Url:
 			url = link[0]
 			#portocol filter
 			portocol_flag = cls.url_portocol_filter(url)
+			
 						
 			#domain filter
 			if domain_filter:
 				domain_flag =  domain_filter and cls.url_domain_control(url, base_url)
 			else:
 				domain_flag = True	
-					
+			
+			keyword_filter_flag =  not cls.url_keyword_ignore(url)		
 			#depth filter		
 			depth_flag = cls.url_depth_control(url)
-			if portocol_flag and domain_flag and depth_flag:			
+			if portocol_flag and domain_flag and depth_flag and keyword_filter_flag:			
 				dup_flag = cls.url_dup_filter(url)			
 				if  not dup_flag:			
 					yield link
@@ -175,11 +177,11 @@ class Url:
 	def urlItem(cls, link_anchor,purl, depth=0):
 		item = UrlItem()
 		item['url'] = link_anchor[0]
-		item['purl'] = purl
-		item['time'] = timestamp()
+		item['purl'] = purl		
 		item['depth'] = depth+1		
 		item['priority'] = cls.url_priority(link_anchor)
 		item['anchor'] = link_anchor[1]
+		item['time'] = timestamp()
 		return item		
 		
 	@classmethod	
@@ -204,12 +206,13 @@ class Url:
 		''' save urlitem in redis set'''
 		try:
 			URL_ITEM_UNV_SET.push(urItem)
-		except:
-			Logger.error('urlItem_redis_save error')
+		except Exception,e:
+			print e
+			
 		
 			
 	@classmethod
-	def url_todo(cls, html, purl, domain_control=True):
+	def url_todo(cls, html, purl, domain_control=False):
 		#
 		if urlparse.urlparse(purl)[2]=='':
 			purl = purl+'/'			
@@ -220,6 +223,7 @@ class Url:
 		for i in cls.url_filter(html, domain_control, purl):			
 			item = cls.urlItem(i, purl,depth)			
 			cls.urlItem_redis_save(item)
+			yield item
 		
 		#save to file		
 # 		cls.urlItem__file_save(urlitem_list)
@@ -246,16 +250,18 @@ def url_priority(urlItem):
 
 if __name__ == '__main__':	
 
-	with open('111', 'w') as fw:
-		for i in URL_ITEM_UNV_SET.get_all():
-			url = i['url']
-			if i['anchor']:
-				anchor = i['anchor']
-			else:
-				anchor = ''			
-			fw.write(url+' | '+anchor+'\n')
- 			
-	urlItem_read()
+# 	with open('111', 'w') as fw:
+# 		for i in URL_ITEM_UNV_SET.get_all():
+# 			url = i['url']
+# 			if i['anchor']:
+# 				anchor = i['anchor']
+# 			else:
+# 				anchor = ''			
+# 			fw.write(url+' | '+anchor+'\n')
+ 	with open(HMTL_DIR+'fde8c258f06d730dc2d2abd3ce95161bb5cb1a10.html','r') as fr:
+ 		html = fr.read()
+ 	Url.url_todo(html, '')	
+# 	urlItem_read()
 # 	with open('../data/HTML/0602152144.html', 'r') as fr:
 # 		html = fr.read()
 	

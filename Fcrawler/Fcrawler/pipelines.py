@@ -11,36 +11,42 @@ reload(sys)
 sys.setdefaultencoding('utf-8')  # @UndefinedVariable
 
 from Fcrawler.spiders.url import Url
+from Fcrawler.spiders.html import Html
+from Fcrawler.spiders.database import HTML_URL_DB
 from Fcrawler.spiders.config import *
 from Fcrawler.spiders.stringHelper import *
-from Fcrawler.spiders.stringHelper import Logger
 
-import logging
+import chardet
 
 global HMTL_DIR
 
-
-def timestamp():
-    return str(time.strftime("%m%d%H%M%S", time.localtime()))
 
 class FcrawlerPipeline(object):
 #     def process_item(self, item, spider):
 #         return item
 
     def process_item(self, item, spider):
-        Logger.log_high('pipeline........................')
-        Logger.info('pipeline........................')
         html = item['response'].body
-        base_url = item['response'].url       
-       
+        base_url = item['response'].url  
+        encoding = item['response'].encoding
         
+          
         #parse url and filter url
-        Url.url_todo(html, base_url)
+#         Url.url_todo(html, base_url)
+        
+        #parse html use class Html
+        HT = Html(html,base_url)
+        res = HT.parse()
+        html_name = res[0]['hash']
+        PH = HTML_URL_DB()
+        PH.html_insert(res)
+        PH.url_item_insert(html, base_url)
             
-        with open(HMTL_DIR+timestamp()+'.html', 'wb') as fw:
+        with open(HMTL_DIR+ str(html_name)+'.html', 'wb') as fw:
             fw.write(html)    
-        logging.info(base_url+' fetched success ')   
+          
         URL_VISITED_SET.push(base_url)
+        Logger.info(base_url+'..........sucess')
         
         
         

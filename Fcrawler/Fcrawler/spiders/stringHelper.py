@@ -56,12 +56,16 @@ def url_hashcode(url):
     return int_code
 
 def match(str1, str2):
-    pattern= str1+'*'   
-    pattern = re.compile(pattern, re.M|re.I)    
-    
-    if pattern.match(str2 ):
-        return True
-    else:
+    try:
+        pattern= str1+'*'   
+        pattern = re.compile(pattern, re.M|re.I)    
+        
+        if pattern.search(str2 ) is not None:
+            return True
+        else:
+            return False
+    except:
+        print '%s : %s' %(str1, str2)
         return False
      
 
@@ -77,7 +81,7 @@ class Logger:
         
         #log init
         FORMAT = '%(asctime)-15s -8s %(message)s'
-        logging.basicConfig(filename = os.path.join(os.getcwd(), 'log.txt'), level = logging.DEBUG, format=FORMAT)
+        logging.basicConfig(filename = os.path.join(os.getcwd(), 'Logger_log.log'), level = logging.DEBUG, format=FORMAT)
         
         @staticmethod
         def info(message):
@@ -115,7 +119,7 @@ if __name__=='__main__':
 #     Logger.log_fail("This is a fail message!")
 #     Logger.log_high("This is a high-light message!")
 #     Logger.info('message')
-    print match('Comment', 'comments')
+    print match('Comment', 'comments this is')
     
     
     

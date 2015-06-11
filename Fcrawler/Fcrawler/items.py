@@ -32,6 +32,7 @@ class PageItem(Item):
 	priority = Field()	
 	hash = Field()
 	main_text = Field()
+	encode = Field()
 	
 
 

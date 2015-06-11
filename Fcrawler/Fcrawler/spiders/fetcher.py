@@ -9,6 +9,7 @@ from scrapy.contrib.spiders import CrawlSpider
 from scrapy.selector import Selector
 from scrapy.http import Request
 import time
+from scrapy import log
 
 
 # our own define 
@@ -30,12 +31,22 @@ count=0
 reload(sys) 
 sys.setdefaultencoding('utf-8')  # @UndefinedVariable
 
+log.start(logfile=SCRAPY_LOG, loglevel=log.DEBUG, logstdout=True)
+
 
 ''' 虎扑体育'''
 class HupuSpider(CrawlSpider):
 	name = 'hupu'
 	start_urls = ['http://www.hupu.com/',
-				'http://sports.sina.com.cn/']	
+				'http://sports.sina.com.cn/',
+				'http://sports.sina.com.cn/g/championsleague/',
+				'http://sports.qq.com/',
+				'http://sports.sohu.com/',
+				'http://sports.ifeng.com/',
+				'http://match.sports.sina.com.cn/index.html',
+				'http://live.sports.ifeng.com/index.shtml'				
+				]
+		
 
 	def parse(self, response):	
 		global count
@@ -46,13 +57,8 @@ class HupuSpider(CrawlSpider):
 			
 			try:
 				item = FetchItem()
-# 				item['content'] = response.body
-# 				item['original_url'] = response.url
 				item['response']=response
 				Logger.log_normal(response.url+'  download')
-	# 			item['header'] = response.headers
-	# 			item['meta'] = response.meta
-	# 			item['encode'] = response.encoding
 				yield item		
 			except:
 				Logger.log_fail('parse url error')			

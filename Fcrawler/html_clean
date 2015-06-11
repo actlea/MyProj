@@ -1,1 +1,2 @@
-rm -rf /opt/Work/java_workspace/Fcrawler/Fcrawler/data/HTML/*.html
+rm -rf /opt/Work/java_workspace/Fcrawler/Fcrawler/data/HTML/source/*.html
+rm -rf /opt/Work/java_workspace/Fcrawler/Fcrawler/data/HTML/text/*.html
