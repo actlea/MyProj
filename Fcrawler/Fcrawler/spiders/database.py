@@ -151,10 +151,7 @@ class HTML_URL_DB():
     def url_item_insert(self, html, purl, table_name='url_item'):
         for item in Url.url_todo(html, purl):
             sql = self.db.sql_insert(table_name, item)
-            self.db.execsql(sql)
-            Logger.info(purl+' url_item_insert')  
-        
-        
+            self.db.execsql(sql)  
     
     def select(self):
         import lxml.html as html

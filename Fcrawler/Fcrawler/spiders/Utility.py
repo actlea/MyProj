@@ -118,8 +118,9 @@ class Redis_Priority_Set(Base):
             if results:
                 for i in results:
                     yield self._decode_(i)
-                                   
-            
+        
+        def isempty(self):
+            return self.server.zcard(self.key)==0 
     
         def push(self, urlItem):
             data = self._encode_(urlItem)            
@@ -140,6 +141,36 @@ class Redis_Priority_Set(Base):
                 return self._decode_(results[0])
             
 
+#2015-06-12
+class Hash_Set(Base):
+    def __init__(self, key):
+        self.server = redis.StrictRedis(REDIS_HOST, REDIS_PORT)
+        self.key = 'Fcrawler:%s:hash_set' %key
+    
+    def __len__(self):
+        return self.server.hlen(self.key)
+    
+    def get_all_field_value(self):
+        ''' get all field values of key'''
+        yield self.server.hgetall(self.key)
+    
+    def get_all_value(self):
+        yield self.server.hvals(self.key)
+    
+    def get_all_field(self):
+        yield self.server.hkeys(self.key)
+    
+    def get(self, name):
+        return self.server.hget(self.key, name)
+    
+    def set(self,name, value='1'):
+        '''if name exist,return 0, else return 1'''
+        return self.server.hset(self.key, name, value)
+    
+    def isexist(self,name):
+        '''if name exist, return 1, else return 0'''
+        return self.server.hexists(self.key, name)
+        
     
     
 if __name__=='__main__':

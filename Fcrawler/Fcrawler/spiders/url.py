@@ -30,9 +30,7 @@ sys.setdefaultencoding('utf-8')
 
 class Url:
 	if  not os.path.exists(DIR):
-		os.mkdir(DIR)	
-	
-		
+		os.mkdir(DIR)
 	if not os.path.exists(HMTL_DIR):
 		os.mkdir(HMTL_DIR)
 					
@@ -45,9 +43,9 @@ class Url:
 			
 	@classmethod
 	def url_format(cls,url, base_url):	
-		url = cls.url_absolute(url, base_url)			
-		url_structure = urlparse.urlparse(url)
-	
+		url = cls.url_absolute(url, base_url)
+					
+		url_structure = urlparse.urlparse(url)	
 		scheme=url_structure[0]
 		if scheme not in PROTOCOL:
 			return ''
@@ -58,23 +56,18 @@ class Url:
 	
 	@classmethod
 	def url_depth(cls, url):		
-		#get url depth
-		key = url_hashcode(url)
-		depth=0		
-		if Depth_Table.has_key(key):
-			depth = Depth_Table[key]+1				
+		#get and set url depth		
+		depth = 0
+		if Depth_Hash_Table.isexist(url):
+			depth = int(Depth_Hash_Table.get(url))+1
+			Depth_Hash_Table.set(url,depth)
+		else:
+			Depth_Hash_Table.set(url,depth)
 		return depth	
 	
 	@classmethod
-	def add_depth(cls, url):
-		key = url_hashcode(url)
-		depth = cls.url_depth(url)
-		if Depth_Table.has_key(key):
-			Depth_Table[key] = depth			
-		
-	@classmethod
 	def url_domain_control(cls,url, purl):
-		'''netloc filter'''
+		'''netloc filter, if url in domain, return True'''
 		url_d = urlparse.urlparse(url)[1] 
 		purl_d = urlparse.urlparse(purl)[1]
 	
@@ -87,14 +80,14 @@ class Url:
 		
 	@classmethod
 	def url_depth_control(cls, url,CRAWL_DEPTH=5):
-		depth = cls.url_depth(url)
-		cls.add_depth(url)	
+		depth = cls.url_depth(url)			
 		if depth > CRAWL_DEPTH:
 			return False			
 		return True
 	
 	@classmethod
 	def url_portocol_filter(cls,url):
+		'''if url portocol not in PROTOCOL return False'''
 		urlstruc = urlparse.urlparse(url)
 		if urlstruc[0] not in PROTOCOL:
 			return False
@@ -102,10 +95,12 @@ class Url:
 
 	@classmethod
 	def url_keyword_ignore(cls,url):
+		'''if url hash ignore keyword, return False'''
 		urlstruc = urlparse.urlparse(url)
 		netloc = urlstruc[1]
 		words = netloc.split('.')
 		
+		#choose 0-stop word to find ignore key words
 		stop=1
 		if len(words)>1:
 			stop=2
@@ -113,72 +108,84 @@ class Url:
 		for i in words[0:stop]:
 			for j in IGNORE_KEYWORD:
 				if match(i, j):
-					return True
-		return False
+					return False
+		return True
 		
 	@classmethod
 	def url_extract(cls, html, base_url):
+		'''extract url and format url'''
 		hxs = lxml.html.fromstring(html)
 		a_tags = hxs.xpath('//a')	
 		
 		for a in a_tags:
 			link = a.xpath('./@href') 
 			anchor_text= a.xpath('./text()')			
-			link = text_format(link)		
+			link = text_format(link)
 			
 			link = cls.url_format(link, base_url)
 			anchor_text = text_format(anchor_text)				
 
 			yield (link, anchor_text)
-		
-
+	
 	@classmethod
 	def url_dup_filter(cls, url):
 		'''
 		if url duplicate or has been visited, return True, else return False
 		'''		
-		flag = url in URL_VISITED_SET.get_all()
+		#redis hset filter
+		flag = URL_VISITED_HSET.isexist(url)
 		if flag: return True		
 		#bloom filter	
 		flag = URL_UNVISITED_SET.add(url)
 		if flag: return True
-		flag = URL_UNVISITED_RSET.push(url)==0 #push url into redis set
-		if flag: return True
-
+		#redis set filter
+		flag = URL_UNVISITED_RSET.push(url)
+		if not flag: return True 
+		
 		return False
 		
-	
 	@classmethod
-	def url_filter(cls, html, domain_filter=True, base_url=''):	
-				
+	def url_filter(cls, html, domain_filter=True, base_url=''):
+		'''filter non-need(domain,ignore keyword, duplicate, depth contorl) url''' 	
+		
+		#all url has been formatted
 		for link in cls.url_extract(html, base_url):
-			url = link[0]
-			#portocol filter
-			portocol_flag = cls.url_portocol_filter(url)
+			if link:url = link[0]
+			else:continue
 			
-						
-			#domain filter
-			if domain_filter:
-				domain_flag =  domain_filter and cls.url_domain_control(url, base_url)
-			else:
-				domain_flag = True	
-			
-			keyword_filter_flag =  not cls.url_keyword_ignore(url)		
 			#depth filter		
 			depth_flag = cls.url_depth_control(url)
-			if portocol_flag and domain_flag and depth_flag and keyword_filter_flag:			
-				dup_flag = cls.url_dup_filter(url)			
-				if  not dup_flag:			
-					yield link
-				
+			if not depth_flag: continue
+			
+			#portocol filter
+			portocol_flag = cls.url_portocol_filter(url)
+			if not portocol_flag:continue	
+			
+			#keyword filter
+			keyword_filter_flag =  cls.url_keyword_ignore(url)
+			if not keyword_filter_flag: continue	
+						
+			#domain filter
+			domain_flag = True
+			if domain_filter:
+				domain_flag =  cls.url_domain_control(url, base_url)
+			if not domain_flag: continue		
+					
+			#duplicate filter
+			dup_flag = cls.url_dup_filter(url)
+			if not dup_flag:
+				URL_UNVISITED_RSET.push(url) #push url into redis set
+				yield link
+			else:
+				continue
 												
 	
 	@classmethod
-	def urlItem(cls, link_anchor,purl, depth=0):
+	def urlItem(cls, link_anchor,purl):
 		item = UrlItem()
 		item['url'] = link_anchor[0]
 		item['purl'] = purl		
-		item['depth'] = depth+1		
+		item['depth'] = cls.url_depth(link_anchor[0])	
 		item['priority'] = cls.url_priority(link_anchor)
 		item['anchor'] = link_anchor[1]
 		item['time'] = timestamp()
@@ -188,7 +195,19 @@ class Url:
 	def url_priority(cls, link_anchor):
 		return 0		
 	
+	@classmethod
+	def url_todo(cls, html, purl=None, domain_control=False):		
+		print 'url to do '
+		if urlparse.urlparse(purl)[2]=='':
+			purl = purl+'/'			
+  	
+		#generate UrlItem		
+		for i in cls.url_filter(html, domain_control, purl):			
+			item = cls.urlItem(i, purl)			
+			cls.urlItem_redis_save(item)
+			yield item
 	
+			
 	@classmethod
 	def urlItem__file_save(cls, urlItem_list):
 		if not os.path.exists('../data'):
@@ -201,33 +220,14 @@ class Url:
 					fw.write(tmp)
 				except:
 					continue
+	
 	@classmethod
 	def urlItem_redis_save(cls, urItem):
 		''' save urlitem in redis set'''
 		try:
 			URL_ITEM_UNV_SET.push(urItem)
 		except Exception,e:
-			print e
-			
-		
-			
-	@classmethod
-	def url_todo(cls, html, purl, domain_control=False):
-		#
-		if urlparse.urlparse(purl)[2]=='':
-			purl = purl+'/'			
-		
-		#depth of purl
-		depth = cls.url_depth(purl)
-		#generate UrlItem		
-		for i in cls.url_filter(html, domain_control, purl):			
-			item = cls.urlItem(i, purl,depth)			
-			cls.urlItem_redis_save(item)
-			yield item
-		
-		#save to file		
-# 		cls.urlItem__file_save(urlitem_list)
-		
+			Logger.error(e)
 		
 
 def urlItem_read():
@@ -251,6 +251,7 @@ def url_priority(urlItem):
 if __name__ == '__main__':	
 
 # 	with open('111', 'w') as fw:
+# 		
 # 		for i in URL_ITEM_UNV_SET.get_all():
 # 			url = i['url']
 # 			if i['anchor']:
@@ -258,12 +259,12 @@ if __name__ == '__main__':
 # 			else:
 # 				anchor = ''			
 # 			fw.write(url+' | '+anchor+'\n')
- 	with open(HMTL_DIR+'fde8c258f06d730dc2d2abd3ce95161bb5cb1a10.html','r') as fr:
- 		html = fr.read()
- 	Url.url_todo(html, '')	
+	with open(HMTL_DIR+'f61f4ea5ee707b91415dc0e4715dc825389614fe.html','r') as fr:
+		html = fr.read()
+	Url.url_filter(html, 'www.baidu.com')
+	Url.url_todo(html, purl='www.baidu.com')	
 # 	urlItem_read()
-# 	with open('../data/HTML/0602152144.html', 'r') as fr:
-# 		html = fr.read()
+# 	print Url.url_depth('www.google.com')
 	
 	
 	

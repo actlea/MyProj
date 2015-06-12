@@ -22,7 +22,6 @@ from config import *
 import chardet
 import codecs
 
-
 from Fcrawler.items import PageItem
 reload(sys) 
 sys.setdefaultencoding('utf-8')  # @UndefinedVariable
@@ -111,15 +110,23 @@ class Html:
             return text 
         except Exception,e:
             Logger.error(e)
-            return None       
+            return None  
         
+           
+    def parse(self): 
+        tmp = self.html
         
-        
-    def parse(self):        
-        self.html, encode = encode_to_utf8(self.html)
-        self.hxs = lxml.html.fromstring(self.html)
-        title = blank_delete( ext(self.hxs.xpath('//title/text()')) ) 
-        
+        try:       
+            self.html, encode, encode1 = encode_to_utf8(self.html)
+            
+            #unicode self.html, because lxml.html can change the encoding of self.html if it is <type 'str'>
+            self.html = self.html.decode('utf-8')
+            self.hxs = lxml.html.fromstring(self.html)            
+            title = blank_delete( ext(self.hxs.xpath('//title/text()')) ) 
+        except Exception,e:
+            Logger.error(e)
+            return None
+            
         main_text = None
         try:
             main_text = blank_delete(get_main_text(self.html, encode))            
@@ -174,9 +181,8 @@ def encode_to_utf8(text):
     except Exception,e:
         print e
           
-    return text,encode
+    return text,encode,encode2
     
-
 
 def extract(htmlstring_or_filelike, encoding=None):                  
     if os.path.exists(HMTL_DIR+htmlstring_or_filelike):
@@ -223,12 +229,12 @@ def test():
 if __name__=='__main__':
 #     test()
         
-    file = '1.html'
+    file = '1e827d9f0df4566e56306e08df3f54025deb90b9.html'
     with open(HMTL_DIR+file, 'r') as fr:
         html = fr.read()
-    text,encode = encode_to_utf8(html)
-    print blank_delete(get_main_text(text, encode))
-    print encode
+    text,encode,_ = encode_to_utf8(html)
+    HT = Html(file)
+    HT.parse();
 
     
 

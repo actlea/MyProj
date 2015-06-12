@@ -31,21 +31,25 @@ class FcrawlerPipeline(object):
         encoding = item['response'].encoding
         
           
-        #parse url and filter url
-#         Url.url_todo(html, base_url)
+
         
         #parse html use class Html
         HT = Html(html,base_url)
-        res = HT.parse()
-        html_name = res[0]['hash']
         PH = HTML_URL_DB()
+        
+        #insert html into mysql
+        res = HT.parse()
+        if res is None:
+            return None
+        html_name = res[0]['hash']        
         PH.html_insert(res)
+        
+        #insert url into mysql
         PH.url_item_insert(html, base_url)
             
         with open(HMTL_DIR+ str(html_name)+'.html', 'wb') as fw:
-            fw.write(html)    
-          
-        URL_VISITED_SET.push(base_url)
+            fw.write(html)          
+        URL_VISITED_HSET.set(base_url)
         Logger.info(base_url+'..........sucess')
         
         

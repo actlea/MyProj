@@ -49,38 +49,34 @@ class HupuSpider(CrawlSpider):
 		
 
 	def parse(self, response):	
-		global count
-		
-		try:		
-			Logger.log_high('hupu spider start'+'.'*20)
-			
-			
+		global count		
+		try:
 			try:
 				item = FetchItem()
 				item['response']=response
-				Logger.log_normal(response.url+'  download')
+				Logger.info(response.url+'  download')
 				yield item		
 			except:
-				Logger.log_fail('parse url error')			
+				Logger.error('parse url error')			
 					
 			count+=1
 			if count>=MAX_PAGE:
 				return
 			
 # 			for url in Url.url_todo(html, purl):
-			while not URL_UNVISITED_RSET.isempty():				
-				url = URL_UNVISITED_RSET.pop()
-				Logger.log_high('url:'+url+'.'*20)							
+			while not URL_ITEM_UNV_SET.isempty():				
+# 				url = URL_UNVISITED_RSET.pop()
+				url = URL_ITEM_UNV_SET.pop()['url']
+				Logger.info('url:'+url+'.'*20)							
 				try:
 					request_dup = DupeFilterTest()
 					flag = request_dup.request_dupe_filter(url)	
 					if not flag:				
 						yield Request(url, callback=self.parse)	
 				except:
-					continue						
-				
+					continue
 		except : 
-			Logger.log_fail('parse error')
+			Logger.error('parse error')
 		
 
 

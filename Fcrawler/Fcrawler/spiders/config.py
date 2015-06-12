@@ -6,7 +6,7 @@ sys.path.append('..')
 
 from pybloom import ScalableBloomFilter
 import random
-from Utility import DupeFilterTest,Redis_Set, Redis_Priority_Set
+from Utility import DupeFilterTest,Redis_Set, Redis_Priority_Set, Hash_Set
 
 
 
@@ -23,26 +23,23 @@ IGNORE_KEYWORD=('comment', 'game', 'app', 'money', 'finance','sax','vip', 'stock
 PROTOCOL = ('http', 'ftp','https')
 
 CRAWL_DEPTH=5
-Depth_Table = {}
-DIR = '/opt/Work/java_workspace/Fcrawler/Fcrawler/data/'
 
+#dir path
+DIR = '/opt/Work/java_workspace/Fcrawler/Fcrawler/data/'
 HMTL_DIR = DIR+'HTML/source/'
 HTML_TEXT_DIR = DIR+'HTML/text/'
+SCRAPY_LOG = '/opt/Work/java_workspace/Fcrawler/scrapy_log.log'     #scrapy log file
 
-URL_UNVISITED_SET = ScalableBloomFilter(mode=ScalableBloomFilter.SMALL_SET_GROWTH)    #
+#redis set, hset, zset
+Depth_Hash_Table = Hash_Set('url_depth')
+URL_UNVISITED_SET = ScalableBloomFilter(mode=ScalableBloomFilter.SMALL_SET_GROWTH) 
+URL_UNVISITED_RSET = Redis_Set('url_unvisited')                                     #url_unvisited_set
+URL_ITEM_UNV_SET = Redis_Priority_Set('urlItem_unvisited')                          #urlitem_unvisited_set, url sorted by priority                                          
+URL_VISITED_HSET = Hash_Set('url_visited')                                          #url hash been visited
+HTML_FETCH_SET =  Redis_Set('HTML_TABLE')                                           #store html hashcode
 
-URL_UNVISITED_RSET = Redis_Set('url_unvisited')                #url_unvisited_set
 
-URL_ITEM_UNV_SET = Redis_Priority_Set('urlItem_unvisited')           #urlitem_unvisited_set, url sorted by priority
-URL_VISITED_SET = Redis_Set('url_visited')  
-HTML_FETCH_SET =  Redis_Set('HTML_TABLE')
-
-#scrapy log file
-SCRAPY_LOG = '/opt/Work/java_workspace/Fcrawler/scrapy_log.log'
-
-ENCODING=('utf-8', 'GB2312', 'ISO-8859-2')
-                       #
-
+ENCODING=('utf-8', 'GB2312', 'ISO-8859-2','GBK')
 USER_AGENTS = [
     "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; AcooBrowser; .NET CLR 1.1.4322; .NET CLR 2.0.50727)",
     "Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 6.0; Acoo Browser; SLCC1; .NET CLR 2.0.50727; Media Center PC 5.0; .NET CLR 3.0.04506)",
