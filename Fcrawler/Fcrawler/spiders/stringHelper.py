@@ -67,7 +67,6 @@ def match(str1, str2):
     except:
         print '%s : %s' %(str1, str2)
         return False
-     
 
 
 class Logger:                                                                      

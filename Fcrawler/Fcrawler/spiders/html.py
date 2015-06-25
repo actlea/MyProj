@@ -42,7 +42,7 @@ TEXT_FINDER_XPATH = '//body\
                             self::strong or \
                             self::span or \
                             self::a)] \
-                            /text()[string-length(normalize-space()) > 20]/..'
+                            /text()[string-length(normalize-space()) > 10]/..'
 
 
 
@@ -92,6 +92,18 @@ class Html:
     def __init__(self, filelike_or_str, base_url='null'):
         self.html = self.html_content(filelike_or_str)               
         self.base_url = base_url
+        self.init()
+    
+    def init(self):
+        try:       
+            self.html, self.encode = encode_to_utf8(self.html)
+            
+            #unicode self.html, because lxml.html can change the encoding of self.html if it is <type 'str'>
+            self.html = self.html.decode('utf-8')
+            self.hxs = lxml.html.fromstring(self.html) 
+        except Exception,e:
+            Logger.error(e)
+            return None
         
     def html_content(self, filelike_or_str):
         '''html from file or str'''
@@ -104,38 +116,37 @@ class Html:
             
     def get_text(self):
         '''get html text without html tag'''
+        
+        text_path='//a/text() | //p/text() | //span/text() | //h1/text() | //div/text()'        
         try:
-            text = ''.join(self.hxs.xpath('//a/text() | //p/text() | //span/text() | //h1/text() | //div/text()'))
+            text = ''.join(self.hxs.xpath(TEXT_FINDER_XPATH))
             text = blank_delete(text)
             return text 
         except Exception,e:
             Logger.error(e)
             return None  
+    
         
-           
+    def html_type(self):
+        LINK_TYPE  = 1
+        PHOTO_TYPE = 2
+        TEXT_TYPE  = 3 
+        TABLE_TYPE = 4
+        
+          
     def parse(self): 
-        tmp = self.html
-        
-        try:       
-            self.html, encode, encode1 = encode_to_utf8(self.html)
-            
-            #unicode self.html, because lxml.html can change the encoding of self.html if it is <type 'str'>
-            self.html = self.html.decode('utf-8')
-            self.hxs = lxml.html.fromstring(self.html)            
-            title = blank_delete( ext(self.hxs.xpath('//title/text()')) ) 
-        except Exception,e:
-            Logger.error(e)
-            return None
+        title = blank_delete( ext(self.hxs.xpath('//title/text()')) ) 
+        encode = self.encode  
             
         main_text = None
         try:
-            main_text = blank_delete(get_main_text(self.html, encode))            
+            main_text = blank_delete(get_main_text(self.html, 'utf-8'))            
         except Exception,e:
             Logger.error(self.base_url+' error......')
             Logger.error(e) 
         if main_text is None:
             main_text = self.get_text()            
-                    
+        return None           
         #hash html
         fp = sha1()
         fp.update(self.base_url)
@@ -181,7 +192,7 @@ def encode_to_utf8(text):
     except Exception,e:
         print e
           
-    return text,encode,encode2
+    return text,encode
     
 
 def extract(htmlstring_or_filelike, encoding=None):                  
@@ -205,7 +216,7 @@ def exract_v2(htmlstring_or_filelike):
 
 def get_main_text(htmlstring_or_filelike,encoding=None):
     tree = extract(htmlstring_or_filelike,encoding)   
-    str = tree.get_html_string()
+    str = tree.get_html_string()    
     return str
    
         
@@ -216,7 +227,11 @@ def test():
     
     for i in os.listdir(HMTL_DIR):        
         if os.path.isfile(HMTL_DIR+i):
-            str = get_main_text(i)
+            try:
+                str = get_main_text(i)
+            except:
+                print i+' fail...'
+                continue
             if str:
                 print '%s : succeed' %(i)
                 name = i.split('.')[0]+'_.html'
@@ -229,12 +244,11 @@ def test():
 if __name__=='__main__':
 #     test()
         
-    file = '1e827d9f0df4566e56306e08df3f54025deb90b9.html'
+    file = '481c002b8ae73f9cd196e63a5a5382965ce8b19a.html'
     with open(HMTL_DIR+file, 'r') as fr:
-        html = fr.read()
-    text,encode,_ = encode_to_utf8(html)
+        html = fr.read()    
     HT = Html(file)
-    HT.parse();
+    HT.parse()
 
     
 

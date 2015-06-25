@@ -95,7 +95,7 @@ class Url:
 
 	@classmethod
 	def url_keyword_ignore(cls,url):
-		'''if url hash ignore keyword, return False'''
+		'''if url has ignore keyword, return False'''
 		urlstruc = urlparse.urlparse(url)
 		netloc = urlstruc[1]
 		words = netloc.split('.')
@@ -110,6 +110,14 @@ class Url:
 				if match(i, j):
 					return False
 		return True
+	
+	@classmethod
+	def url_keyword_focus(cls, url):
+		'''if url has no keyword, return False'''
+		for i in KEYWORD:
+			if match(i, url):
+				return True
+		return False
 		
 	@classmethod
 	def url_extract(cls, html, base_url):
@@ -164,7 +172,10 @@ class Url:
 			#keyword filter
 			keyword_filter_flag =  cls.url_keyword_ignore(url)
 			if not keyword_filter_flag: continue	
-						
+			
+			#keyword focus
+			if not cls.url_keyword_focus(url): continue
+				
 			#domain filter
 			domain_flag = True
 			if domain_filter:

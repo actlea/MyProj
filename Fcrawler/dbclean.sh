@@ -2,8 +2,10 @@
 echo "clear log text"
 find . -type f -name '*log*' -print0 | xargs -0 rm;
 
-./html_clean
-./url_clean
+if [ "$1"="1" ];then
+	./html_clean	
+	echo "clear html file"
+fi
 
 echo "clear table html"
 mysql -uroot -pzjm<<EOF

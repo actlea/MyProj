@@ -17,8 +17,8 @@ IGNORE_EXT = ('js','css','png','jpg','gif','bmp','svg','exif',\
 
 #过滤netloc部分的关键字
 IGNORE_KEYWORD=('comment', 'game', 'app', 'money', 'finance','sax','vip', 'stock','help','ka', 'auto',\
-                'caipiao','ask')
-
+                'caipiao','ask','baby','astro','edu')
+KEYWORD=('nba','soccer','sport','cba')
 
 PROTOCOL = ('http', 'ftp','https')
 
