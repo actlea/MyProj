@@ -21,28 +21,8 @@ TEXT_FINDER_XPATH2 = '//body\
                             self::b or \
                             self::strong \
                             )] \
-                            /text()/..'
+                            /text()[string-length(normalize-space()) > 2]/..'
 
-def parse(html_str, encoding='utf-8'):
-    html_tree= get_html_tree(html_str, encoding)
-    
-    #only textnode and linknode reserved
-    subtrees = get_textnode_subtrees(html_tree, xpath_to_text=TEXT_FINDER_XPATH2)    
-    
-    #first gather paths
-    paths = gather_xpath(subtrees) 
-       
-    #remove pre-path
-    pre_removed_path = remove_prepath(paths)
-    target_subtrees = [subtree for subtree in subtrees
-                       if is_path_in(subtree.parent_path, pre_removed_path)]
-    
-    #second gather path
-    second_gather_paths = second_gather_xpath(pre_removed_path)
-    
-    
-    for path in second_gather_paths:
-        print path
 
 '''
 if paths is a pre path in paths, then remove paths
@@ -86,18 +66,16 @@ def second_gather_xpath(paths):
                 break
         if flag:
             tmp.append(path)            
-                   
+    tmp.sort(lambda p1, p2: p2[1]-p1[1])               
     return tmp    
-        
-    
-    
-        
-    
  
 
 def gather_xpath(subtrees):
     #all xpaths
     paths = [subtree.parent_path for subtree in subtrees]
+    with open('111', 'w') as fw:
+        for path in paths:
+            fw.write(path+'\n')
     
     #[".//*[@id='topcont_schedule']/div[3]/div/div[2]", 'div[7]', 'div[2]', 'p']
     splitpaths = [p.rsplit('/', 3) for p in paths]
@@ -111,11 +89,8 @@ def gather_xpath(subtrees):
 
 
 '''test if parent_path in paths'''    
-def is_path_in(parent_path, paths):                
-    trie_obj = LBTrie()
-    for path in paths:
-        trie_obj.add(path[0])
-    if trie_obj.search(parent_path):
+def is_path_in(parent_path, paths, trie_obj):
+    if trie_obj.pre_search(parent_path):
         return True
     return False    
 
@@ -173,12 +148,82 @@ class LBTrie:
             return True  
         return False
     
+    #查看某单词的前缀是否存在
+    def pre_search(self, word):
+        p=self.trie
         
-          
+        try:
+            for c in word:
+                p = p[c]
+        except(KeyError):
+            if c=='/':
+                return True
+        return False
 
+'''classify subtrees into different blocks'''
+def block_subtrees(subtrees, block_paths):
+    
+    #{'/html/body/div[1]':"['/html/body/div[1]/p[1]','/html/body/div[1]/p[2]',...]", ...}
+    blocks={}
+    trie_obj = LBTrie()
+    for path in block_paths: trie_obj.add(block_paths[0])
+    
+    target_subtrees = [subtree for subtree in subtrees
+                       if is_path_in(subtree.parent_path, block_paths, trie_obj)]
+    
+    for block in block_paths:
+        blocks[block[0]]=[]
+        for subtree in subtrees:
+            if pre_match( block[0], subtree.parent_path):
+                blocks[block[0]].append(subtree)
+    
+    return blocks
+
+'''test what kind of page it is'''
+def kind_page(blocks):
+    LINK_KIND = 0
+    TOPIC_KIND = 1
+    OTHER_KIND = 2
+    
+                
+'''select main text from blocks'''
+def main_text(blocks):
+     
+    pass
+          
+def parse(html_str, encoding='utf-8'):
+    html_tree= get_html_tree(html_str, encoding)
+    
+    #only textnode and linknode reserved
+    subtrees = get_textnode_subtrees(html_tree, xpath_to_text=TEXT_FINDER_XPATH2)    
+    
+    #first gather paths
+    paths = gather_xpath(subtrees) 
+       
+    #remove pre-path
+    pre_removed_path = remove_prepath(paths)    
+    
+    #second gather path, this is blocks we get
+    second_gather_paths = second_gather_xpath(pre_removed_path)
+    
+    trie_obj = LBTrie()
+    for path in second_gather_paths: trie_obj.add(second_gather_paths[0])
+    
+    target_subtrees = [subtree for subtree in subtrees
+                       if is_path_in(subtree.parent_path, second_gather_paths, trie_obj)]
+    
+#     print block_subtrees(subtrees, second_gather_paths)
+    for path in pre_removed_path:
+        print path
+    
+    # calculate AABSL
+    avg, _, _ , xpath_max_len = calcavg_avgstrlen_subtrees(target_subtrees)
+    print avg,xpath_max_len
+    
 
 if __name__=='__main__':
-    file = 'b9083515bebb6458b429ff3e73753f6114520784.html'
+#     file = 'b9083515bebb6458b429ff3e73753f6114520784.html'
+    file = '3931050dc96007b99ddf5c9a49522c02e61fb52e.html'
     html=''
     with open(HMTL_DIR+file, 'r') as fr:
         html = fr.read()
