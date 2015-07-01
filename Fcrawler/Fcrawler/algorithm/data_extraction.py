@@ -9,20 +9,7 @@ from eatiht.etv2 import *
 from collections import Counter
 from Fcrawler.spiders.config import *
 from Fcrawler.spiders.html import encode_to_utf8 
-
-
-
-TEXT_FINDER_XPATH2 = '//body\
-                        //*[not(\
-                            self::script or \
-                            self::noscript or \
-                            self::style or \
-                            self::i or \
-                            self::b or \
-                            self::strong \
-                            )] \
-                            /text()[string-length(normalize-space()) > 2]/..'
-
+from Trie_tree import LBTrie
 
 '''
 if paths is a pre path in paths, then remove paths
@@ -122,64 +109,6 @@ def pre_match(path1, path2):
             return False
     return True
     
-'''
-use Trie Tree to remove pre path
-'''
-class LBTrie:  
-    """ 
-    simple implemention of Trie in Python by authon liubing, which is not  
-    perfect but just to illustrate the basis and principle of Trie.  
-    """  
-    def __init__(self):  
-        self.trie = {}  
-        self.size = 0  
-         
-    #添加单词   
-    def add(self, word):  
-        p = self.trie
-        word = word.split('/')
-        for c in word:  
-            if not c in p:  
-                p[c] = {}  
-            p = p[c]  
-        if word != '':  
-            #在单词末尾处添加键值''作为标记，即只要某个字符的字典中含有''键即为单词结尾  
-            p[''] = '' 
-                
-    def isend(self, word):
-        p = self.trie
-        word = word.split('/')
-        for c in word:
-            if not c in p:
-                return False
-            p = p[c]
-        if '' in p:
-            return True
-        return False
-    
-    def search(self, word):  
-        p = self.trie 
-        word = word.split('/')
-        for c in word:  
-            if not c in p:  
-                return False  
-            p = p[c]  
-        #判断单词结束标记''  
-        if '' in p:  
-            return True  
-        return False
-    
-    #查看某单词的前缀是否存在
-    def pre_search(self, word):
-        p=self.trie
-        word = word.split('/')
-        try:
-            for c in word:
-                p = p[c]
-        except(KeyError):
-            if c=='/':
-                return True
-        return False
 
 
 '''test what kind of page it is'''
@@ -210,18 +139,19 @@ def parse(html_str, encoding='utf-8'):
     for path in second_gather_paths: trie_obj.add(path[0])   
     
     
-#     print block_subtrees(subtrees, second_gather_paths)
+#     print block_subtrees(subtrees, second_gather_paths)     
     for subtree in subtrees:
-        print subtree.parent_path
+        print(subtree.parent_path) 
     
-    print '---'*40 
+    
+    print '---'*40,'gather paths'
     for path in paths:
         print path   
-    print '---'*40 
+    print '---'*40,'pre_removed_path'
     for path in pre_removed_path:
         print path
     
-    print '---'*40
+    print '---'*40,'second_gather_paths '
     for path in second_gather_paths:
         print path
         
@@ -259,8 +189,8 @@ if __name__=='__main__':
     with open(HMTL_DIR+file, 'r') as fr:
         html = fr.read()
     html,_ = encode_to_utf8(html)
-#     subtrees, xpaths = parse(html)
-#     blocks = block_subtrees(subtrees, xpaths)
+    subtrees, xpaths = parse(html)
+    blocks = block_subtrees(subtrees, xpaths)
     s1 = '/html/body/div[1]/div[4]/div[1]/div[1]/div[1]'
     s2 = '/html/body/div[1]/div[4]/div[1]/div[6]/div[2]/div[2]/ul'
     s3 = '/html/body/div[1]/div[4]/div[1]/div[1]/div[1]/div[1]'
@@ -268,8 +198,8 @@ if __name__=='__main__':
     a=[s1, s2 ,s3 ,s4]
     trie_obj = LBTrie()
     for i in a: trie_obj.add(i)  
-    m = '/html/body/div[1]/div[4]/div[1]/div[1]'
-    print trie_obj.isend(m)
+    from pprint import pprint
+    pprint(trie_obj.trie)
     
     
 

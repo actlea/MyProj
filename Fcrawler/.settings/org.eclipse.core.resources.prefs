@@ -1,5 +1,8 @@
 eclipse.preferences.version=1
+encoding//Fcrawler/algorithm/Trie_tree.py=utf-8
 encoding//Fcrawler/algorithm/data_extraction.py=utf-8
+encoding//Fcrawler/algorithm/suffix_tree.py=utf-8
+encoding//Fcrawler/algorithm/web_blocks.py=utf-8
 encoding//Fcrawler/items.py=utf-8
 encoding//Fcrawler/pipelines.py=utf-8
 encoding//Fcrawler/settings.py=utf-8

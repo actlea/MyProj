@@ -8,7 +8,16 @@ from pybloom import ScalableBloomFilter
 import random
 from Utility import DupeFilterTest,Redis_Set, Redis_Priority_Set, Hash_Set
 
-
+TEXT_FINDER_XPATH2 = '//body\
+                        //*[not(\
+                            self::script or \
+                            self::noscript or \
+                            self::style or \
+                            self::i or \
+                            self::b or \
+                            self::strong \
+                            )] \
+                            /text()[string-length(normalize-space()) > 2]/..'
 
 #url后缀过滤
 IGNORE_EXT = ('js','css','png','jpg','gif','bmp','svg','exif',\
